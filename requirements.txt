@@ -1,0 +1,8 @@
+Flask
+pandas
+psycopg2-binary
+networkx
+python-dotenv
+gdown
+requests
+gunicorn

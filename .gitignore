@@ -1,0 +1,17 @@
+# Environment
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Flask instance & database
+instance/
+*.db
+
+# Deployment
+.vercel
+logs/
+
+.vercel
