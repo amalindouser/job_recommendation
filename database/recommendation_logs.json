@@ -1,0 +1,84 @@
+{
+  "V|ki2312": [
+    {
+      "ts": 1765385137.0354753,
+      "query": "python",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 2,
+      "avg_match_percent": 38.45,
+      "duration": 51.477,
+      "top_skills": [
+        "machine learning",
+        "python",
+        "scala",
+        "java",
+        "programming"
+      ]
+    },
+    {
+      "ts": 1765385170.6193652,
+      "query": "Accounting, Financial Reporting, Taxation, Auditing, Bookkeeping",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 12,
+      "avg_match_percent": 53.89,
+      "duration": 0.026,
+      "top_skills": [
+        "accounting",
+        "financial statements",
+        "quickbooks",
+        "auditing",
+        "ifrs"
+      ]
+    },
+    {
+      "ts": 1765426126.2058957,
+      "query": "python",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 2,
+      "avg_match_percent": 38.45,
+      "duration": 51.965,
+      "top_skills": [
+        "machine learning",
+        "python",
+        "scala",
+        "java",
+        "programming"
+      ]
+    },
+    {
+      "ts": 1765523579.111339,
+      "query": "python, Microsoft Access, Microsoft Excel, Microsoft Office software, Microsoft Outlook",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 3,
+      "avg_match_percent": 37.87,
+      "duration": 55.027,
+      "top_skills": [
+        "microsoft excel",
+        "accounting",
+        "virtual executive assistant",
+        "data entry",
+        "microsoft office suite"
+      ]
+    },
+    {
+      "ts": 1765523763.85672,
+      "query": "python, Microsoft Access, Microsoft Excel, Microsoft Office software, Microsoft Outlook",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 3,
+      "avg_match_percent": 37.87,
+      "duration": 0.059,
+      "top_skills": [
+        "microsoft excel",
+        "accounting",
+        "virtual executive assistant",
+        "data entry",
+        "microsoft office suite"
+      ]
+    }
+  ]
+}

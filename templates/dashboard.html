@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dashboard - Job Recommendation</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #0A66C2;
+      --primary-dark: #004182;
+      --primary-light: #E7F1FB;
+      --success: #10B981;
+      --warning: #F59E0B;
+      --danger: #EF4444;
+      --info: #3B82F6;
+      --bg-primary: #F8FAFC;
+      --bg-secondary: #FFFFFF;
+      --text-primary: #1F2937;
+      --text-secondary: #6B7280;
+      --border-color: #E5E7EB;
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    body {
+      background: var(--bg-primary);
+      font-family: 'Inter', sans-serif;
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+
+    /* Navbar */
+    .navbar {
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
+      padding: 1rem 0;
+      backdrop-filter: blur(10px);
+    }
+
+    .navbar-brand {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 700;
+      font-size: 1.5rem;
+      color: var(--primary) !important;
+      letter-spacing: -0.5px;
+    }
+
+    /* Cards */
+    .card-modern {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .card-modern:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    /* Stat Cards */
+    .stat-card {
+      background: linear-gradient(135deg, var(--bg-secondary) 0%, #F9FAFB 100%);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 2rem;
+      text-align: center;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle, rgba(10, 102, 194, 0.1) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+
+    .stat-card:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-4px);
+    }
+
+    .stat-icon {
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 14px;
+      font-size: 28px;
+      background: linear-gradient(135deg, var(--primary-light) 0%, rgba(10, 102, 194, 0.05) 100%);
+      color: var(--primary);
+      position: relative;
+      z-index: 1;
+    }
+
+    .stat-card.success .stat-icon {
+      background: linear-gradient(135deg, #DCFCE7 0%, rgba(16, 185, 129, 0.05) 100%);
+      color: var(--success);
+    }
+
+    .stat-card.warning .stat-icon {
+      background: linear-gradient(135deg, #FEF3C7 0%, rgba(245, 158, 11, 0.05) 100%);
+      color: var(--warning);
+    }
+
+    .stat-card h6 {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-value {
+      font-family: 'Poppins', sans-serif;
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1;
+    }
+
+    /* Section Title */
+    .section-title {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section-title::before {
+      content: '';
+      width: 4px;
+      height: 24px;
+      background: linear-gradient(180deg, var(--primary) 0%, var(--primary-light) 100%);
+      border-radius: 2px;
+    }
+
+    /* Chart Container */
+    .chart-container {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.3s ease;
+    }
+
+    .chart-container:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-md);
+    }
+
+    /* Analytics Card */
+    .analytics-header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      padding: 1.5rem;
+      border-radius: 16px;
+      margin-bottom: 1.5rem;
+    }
+
+    .analytics-header .section-title {
+      color: white;
+      margin-bottom: 0.5rem;
+    }
+
+    .analytics-header .section-title::before {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .analytics-desc {
+      font-size: 0.875rem;
+      opacity: 0.85;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Metric Grid */
+    .metric-item {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 1.5rem;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .metric-item:hover {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .metric-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.5rem;
+    }
+
+    .metric-value {
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    /* Badge */
+    .badge-modern {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      background: var(--primary-light);
+      color: var(--primary);
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      border: 1px solid var(--primary);
+    }
+
+    /* Recent Item */
+    .recent-item {
+      padding: 1.25rem;
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      margin-bottom: 1rem;
+      transition: all 0.3s ease;
+      background: var(--bg-secondary);
+    }
+
+    .recent-item:hover {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      transform: translateX(4px);
+    }
+
+    .recent-item strong {
+      display: block;
+      color: var(--text-primary);
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    .recent-item .text-muted {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    /* Button */
+    .btn-modern {
+      font-weight: 600;
+      border-radius: 8px;
+      padding: 0.6rem 1.2rem;
+      transition: all 0.3s ease;
+      border: none;
+      font-size: 0.875rem;
+      letter-spacing: 0.3px;
+    }
+
+    .btn-modern.btn-primary {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-modern.btn-primary:hover {
+      box-shadow: var(--shadow-lg);
+      transform: translateY(-2px);
+    }
+
+    .btn-modern.btn-outline {
+      border: 2px solid var(--primary);
+      color: var(--primary);
+      background: transparent;
+    }
+
+    .btn-modern.btn-outline:hover {
+      background: var(--primary-light);
+    }
+
+    /* List Unstyled Modern */
+    .list-modern li {
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.9rem;
+    }
+
+    .list-modern li:last-child {
+      border-bottom: none;
+    }
+
+    .list-modern li strong {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    .list-modern li span {
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+    }
+
+    /* Page Title */
+    .page-header {
+      margin-bottom: 2rem;
+    }
+
+    .page-title {
+      font-family: 'Poppins', sans-serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+    }
+
+    .page-subtitle {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .stat-value {
+        font-size: 2rem;
+      }
+
+      .section-title {
+        font-size: 1.1rem;
+      }
+
+      .page-title {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg sticky-top">
+    <div class="container-lg">
+      <a class="navbar-brand" href="/">
+        <i class="bi bi-briefcase-fill me-2"></i>JobMatch
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse ms-auto" id="navbarNav">
+        <div class="ms-auto d-flex gap-2 align-items-center flex-wrap justify-content-end">
+          <a class="btn btn-outline-primary btn-modern" style="border-radius: 8px; font-weight: 600; font-size: 0.9rem;" href="/search">
+            <i class="bi bi-search me-1"></i> Search
+          </a>
+          <a class="btn btn-primary btn-modern" style="border-radius: 8px; font-weight: 600; font-size: 0.9rem;" href="{{ url_for('saved_jobs') }}">
+            <i class="bi bi-bookmark-fill me-1"></i> Saved
+          </a>
+          <div class="dropdown">
+            <button class="btn btn-light dropdown-toggle btn-modern" type="button" data-bs-toggle="dropdown" style="border-radius: 8px; font-weight: 600; font-size: 0.9rem;">
+              <i class="bi bi-person-circle me-1"></i> {{ current_user.username }}
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item text-danger" href="/logout">
+                <i class="bi bi-box-arrow-right me-2"></i> Logout
+              </a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="container-lg py-4">
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1 class="page-title">Dashboard</h1>
+      <p class="page-subtitle">Welcome back! Here's your job matching analytics and insights.</p>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="row g-3 mb-4">
+      <div class="col-lg-4">
+        <div class="stat-card">
+          <div class="stat-icon"><i class="bi bi-briefcase"></i></div>
+          <h6>Total Jobs</h6>
+          <div class="stat-value">{{ stats.total_jobs }}</div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="stat-card success">
+          <div class="stat-icon"><i class="bi bi-globe"></i></div>
+          <h6>Countries</h6>
+          <div class="stat-value">{{ stats.countries }}</div>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="stat-card warning">
+          <div class="stat-icon"><i class="bi bi-star"></i></div>
+          <h6>Saved Jobs</h6>
+          <div class="stat-value">{{ stats.saved_jobs }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Grid -->
+    <div class="row g-3">
+
+      <!-- Left Column - Charts -->
+      <div class="col-lg-8">
+
+        <!-- Jobs by Country -->
+        <div class="chart-container mb-3">
+          <h5 class="section-title mb-3">Jobs Distribution</h5>
+          <canvas id="countryChart" height="140"></canvas>
+        </div>
+
+        <!-- Top Skills -->
+        <div class="chart-container">
+          <h5 class="section-title mb-3">Top Required Skills</h5>
+          <canvas id="skillsChart" height="160"></canvas>
+        </div>
+
+      </div>
+
+      <!-- Right Column - Analytics -->
+      <div class="col-lg-4">
+
+        <!-- Analytics Card Header -->
+        <div class="analytics-header">
+          <h5 class="section-title mb-1">Match Analytics</h5>
+          <p class="analytics-desc mb-0">Insights from your recent job searches</p>
+        </div>
+
+        <!-- Metrics Grid -->
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <div class="metric-item">
+              <div class="metric-label">Total Queries</div>
+              <div class="metric-value">{{ recommend_stats.total_queries or 0 }}</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="metric-item">
+              <div class="metric-label">Avg Match</div>
+              <div class="metric-value">{{ recommend_stats.avg_match_percent if recommend_stats.avg_match_percent is not none else '-' }}%</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="metric-item">
+              <div class="metric-label">Avg Results</div>
+              <div class="metric-value">{{ recommend_stats.avg_results or 0 }}</div>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="metric-item">
+              <div class="metric-label">Latency</div>
+              <div class="metric-value">{{ recommend_stats.avg_latency or 0 }}s</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Match Distribution -->
+        <div class="card-modern mb-3">
+          <h6 class="section-title mb-3">Match Distribution</h6>
+          <canvas id="matchDistChart" height="120"></canvas>
+        </div>
+
+        <!-- Match Trend -->
+        <div class="card-modern mb-3">
+          <h6 class="section-title mb-3">30-Day Trend</h6>
+          <canvas id="matchTimeChart" height="100"></canvas>
+        </div>
+
+        <!-- Latency Percentiles -->
+        <div class="card-modern mb-3">
+          <h6 class="section-title mb-3">Latency Percentiles</h6>
+          <div class="row g-2 text-center">
+            <div class="col-4">
+              <div class="metric-label mb-2">P50</div>
+              <div class="metric-value" style="font-size: 1.5rem;">{{ recommend_stats.latency_p50 or '-' }}</div>
+              <small class="text-muted">ms</small>
+            </div>
+            <div class="col-4">
+              <div class="metric-label mb-2">P90</div>
+              <div class="metric-value" style="font-size: 1.5rem;">{{ recommend_stats.latency_p90 or '-' }}</div>
+              <small class="text-muted">ms</small>
+            </div>
+            <div class="col-4">
+              <div class="metric-label mb-2">P99</div>
+              <div class="metric-value" style="font-size: 1.5rem;">{{ recommend_stats.latency_p99 or '-' }}</div>
+              <small class="text-muted">ms</small>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Queries -->
+        <div class="card-modern mb-3">
+          <h6 class="section-title mb-3">Top Searches</h6>
+          <ol class="list-modern mb-0">
+            {% for q,c in recommend_stats.top_queries %}
+              <li>
+                <strong>{{ q }}</strong>
+                <span class="badge-modern">{{ c }}</span>
+              </li>
+            {% else %}
+              <li class="text-muted">No data yet</li>
+            {% endfor %}
+          </ol>
+        </div>
+
+        <!-- Recent Queries -->
+        <div class="card-modern">
+          <h6 class="section-title mb-3">Recent Activity</h6>
+          <ul id="recentQueriesList" class="list-unstyled mb-0"></ul>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Bottom Section - Saved Jobs & Top Skills -->
+    <div class="row g-3 mt-3">
+
+      <!-- Saved Jobs -->
+      <div class="col-lg-8">
+        <div class="card-modern">
+          <h5 class="section-title mb-3">Recent Saved Jobs</h5>
+          {% for job in recent_saved %}
+            <div class="recent-item">
+              <strong><i class="bi bi-briefcase me-2"></i>{{ job.job_title }}</strong>
+              <div class="text-muted mb-2">{{ job.company }} — {{ job.location }}</div>
+              <div class="d-flex gap-2">
+                {% if job.link and job.link!='#' %}
+                  <a class="btn btn-outline btn-modern btn-sm" href="{{ job.link }}" target="_blank">
+                    <i class="bi bi-box-arrow-up-right me-1"></i>Open Job
+                  </a>
+                {% endif %}
+                <button class="btn btn-danger btn-outline btn-modern btn-sm remove-saved-btn" data-idx="{{ loop.index0 }}">
+                  <i class="bi bi-trash me-1"></i>Remove
+                </button>
+              </div>
+            </div>
+          {% else %}
+            <div class="text-center py-4">
+              <i class="bi bi-inbox" style="font-size: 2rem; color: var(--text-secondary); opacity: 0.5;"></i>
+              <p class="text-muted mt-2">No saved jobs yet. Start searching!</p>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Top Skills from Queries -->
+      <div class="col-lg-4">
+        <div class="card-modern">
+          <h6 class="section-title mb-3">Popular Skills</h6>
+          <div class="d-flex flex-wrap gap-2">
+            {% for sk,count in recommend_stats.top_skills_queries %}
+              <span class="badge-modern">
+                <i class="bi bi-lightning-fill me-1"></i>{{ sk }} <span class="ms-1">({{ count }})</span>
+              </span>
+            {% else %}
+              <p class="text-muted mb-0">No skills data</p>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <script>
+    // Chart Defaults
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.font.weight = '500';
+    Chart.defaults.color = '#6B7280';
+
+    const jobsPerCountry = {{ jobs_per_country|tojson|safe }};
+    const topSkills = {{ top_skills|tojson|safe }};
+
+    // Country Chart
+    new Chart(document.getElementById('countryChart'), {
+      type: 'bar',
+      data: {
+        labels: Object.keys(jobsPerCountry),
+        datasets: [{
+          data: Object.values(jobsPerCountry),
+          backgroundColor: '#0A66C2',
+          borderRadius: 8,
+          borderSkipped: false,
+          hoverBackgroundColor: '#004182'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        indexAxis: 'x',
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { beginAtZero: true, grid: { color: '#E5E7EB', drawBorder: false } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+
+    // Skills Chart
+    new Chart(document.getElementById('skillsChart'), {
+      type: 'bar',
+      data: {
+        labels: topSkills.map(s => s[0]),
+        datasets: [{
+          data: topSkills.map(s => s[1]),
+          backgroundColor: '#10B981',
+          borderRadius: 8,
+          borderSkipped: false,
+          hoverBackgroundColor: '#059669'
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { beginAtZero: true, grid: { color: '#E5E7EB', drawBorder: false } },
+          y: { grid: { display: false } }
+        }
+      }
+    });
+
+    // Remove Saved
+    document.querySelectorAll('.remove-saved-btn').forEach(btn => {
+      btn.onclick = async () => {
+        const idx = btn.dataset.idx;
+        const res = await fetch('/remove_saved', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ index: +idx })
+        });
+        const j = await res.json();
+        if (j.success) location.reload();
+        else alert(j.message);
+      };
+    });
+  </script>
+
+  <!-- Analytics Charts -->
+  <script>
+    const recommendStats = {{ recommend_stats|tojson|safe }};
+    const recommendRecent = {{ recommend_recent|tojson|safe }};
+
+    if (recommendStats && Object.keys(recommendStats).length) {
+
+      // Match Distribution
+      const ctx = document.getElementById('matchDistChart');
+      if (ctx && recommendStats.match_buckets) {
+        new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: Object.keys(recommendStats.match_buckets),
+            datasets: [{
+              data: Object.values(recommendStats.match_buckets),
+              backgroundColor: ['#EF4444', '#F59E0B', '#FBBF24', '#10B981', '#3B82F6'],
+              borderRadius: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            indexAxis: 'x',
+            plugins: { legend: { display: false } },
+            scales: {
+              y: { beginAtZero: true, grid: { color: '#E5E7EB' } },
+              x: { grid: { display: false } }
+            }
+          }
+        });
+      }
+
+      // Timeseries Chart
+      const tctx = document.getElementById('matchTimeChart');
+      if (tctx && recommendStats.timeseries) {
+        new Chart(tctx, {
+          type: 'line',
+          data: {
+            labels: recommendStats.timeseries.labels,
+            datasets: [{
+              label: 'Avg Match %',
+              data: recommendStats.timeseries.values,
+              borderColor: '#0A66C2',
+              backgroundColor: 'rgba(10, 102, 194, 0.1)',
+              borderWidth: 2,
+              tension: 0.4,
+              fill: true,
+              pointRadius: 4,
+              pointBackgroundColor: '#0A66C2',
+              pointBorderColor: '#fff',
+              pointBorderWidth: 2,
+              pointHoverRadius: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+              y: { beginAtZero: true, max: 100, grid: { color: '#E5E7EB' } },
+              x: { grid: { color: '#E5E7EB' } }
+            }
+          }
+        });
+      }
+
+      // Recent Queries
+      const rq = document.getElementById('recentQueriesList');
+      if (rq && recommendRecent && recommendRecent.length) {
+        recommendRecent.forEach(it => {
+          const li = document.createElement('li');
+          li.className = 'py-2 border-bottom';
+          li.innerHTML = `
+            <div class="d-flex justify-content-between">
+              <strong>${it.query}</strong>
+              <small class="text-muted">${it.duration || 0}s</small>
+            </div>
+            <div class="small text-muted">
+              Results: ${it.num_results || 0} • Match: ${it.avg_match_percent ?? '-'}%
+            </div>
+          `;
+          rq.appendChild(li);
+        });
+      } else if (rq) {
+        rq.innerHTML = '<li class="text-muted small py-2">No recent queries</li>';
+      }
+    }
+  </script>
+
+</body>
+</html>
