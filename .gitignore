@@ -1,17 +1,38 @@
-# Environment
+# Environment & Secrets
 .env
+.env.local
+.env.*.local
 
 # Python
 __pycache__/
 *.pyc
 *.pyo
+*.pyd
+.Python
+env/
+venv/
+*.egg-info/
+dist/
+build/
 
-# Flask instance & database
-instance/
+# Database
 *.db
+*.sqlite
+*.sqlite3
+database/users.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
 
 # Deployment
 .vercel
+.vercel/
 logs/
 
-.vercel
+# OS
+.DS_Store
+Thumbs.db
