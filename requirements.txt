@@ -11,4 +11,3 @@ Werkzeug
 sentence-transformers
 scikit-learn
 numpy
-transformers
