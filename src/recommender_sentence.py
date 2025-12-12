@@ -3,7 +3,6 @@ import re
 import gzip
 import numpy as np
 import networkx as nx
-from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 
 import numpy as np
@@ -12,7 +11,16 @@ if not hasattr(np, "float_"):
 
 if not hasattr(np, "int_"):
     np.int_ = np.int64
-model = SentenceTransformer("all-MiniLM-L6-v2")
+
+# Lazy load model to avoid memory issues in serverless
+model = None
+
+def get_model():
+    global model
+    if model is None:
+        from sentence_transformers import SentenceTransformer
+        model = SentenceTransformer("all-MiniLM-L6-v2")
+    return model
 
 JOB_EMBEDDINGS = {}
 JOB_EMB_ARRAY = None
@@ -153,7 +161,7 @@ def build_job_embeddings(G, force: bool = False, batch_size: int = 64):
         NODEID_TO_INDEX = {}
         return
 
-    embs = model.encode(sentences, batch_size=batch_size, convert_to_numpy=True, show_progress_bar=False)
+    embs = get_model().encode(sentences, batch_size=batch_size, convert_to_numpy=True, show_progress_bar=False)
     # normalize
     norms = np.linalg.norm(embs, axis=1, keepdims=True)
     embs = embs / (norms + 1e-12)
@@ -185,7 +193,7 @@ def recommend_jobs_sentence(
         return []
 
     user_sentence = normalize(user_text)
-    user_embedding = model.encode(user_sentence, convert_to_numpy=True)
+    user_embedding = get_model().encode(user_sentence, convert_to_numpy=True)
     user_embedding = user_embedding / (np.linalg.norm(user_embedding) + 1e-12)
 
     # Filter candidates by location (if requested)
