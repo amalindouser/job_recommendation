@@ -468,25 +468,25 @@
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse ms-auto" id="navbarNav">
-        <div class="ms-auto d-flex gap-2 align-items-center flex-wrap justify-content-end">
-          <a class="btn btn-outline-primary" style="border-radius: 8px; font-weight: 600; font-size: 0.9rem;" href="{{ url_for('dashboard') }}">
-            <i class="bi bi-graph-up me-1"></i> Dashboard
-          </a>
-          <a class="btn btn-primary" style="border-radius: 8px; font-weight: 600; font-size: 0.9rem;" href="{{ url_for('saved_jobs') }}">
-            <i class="bi bi-bookmark-fill me-1"></i> Saved
-          </a>
-          <div class="dropdown">
-            <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown" style="border-radius: 8px; font-weight: 600; font-size: 0.9rem;">
-              <i class="bi bi-person-circle me-1"></i> {{ current_user.username }}
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end">
-              <li><a class="dropdown-item text-danger" href="/logout">
-                <i class="bi bi-box-arrow-right me-2"></i> Logout
-              </a></li>
-            </ul>
-          </div>
-        </div>
-      </div>
+         <div class="ms-auto d-flex gap-2 align-items-center flex-wrap justify-content-end">
+           <a class="btn btn-outline-primary" style="border-radius: 8px; font-weight: 600; font-size: 0.9rem;" href="{{ url_for('dashboard') }}">
+             <i class="bi bi-graph-up me-1"></i> Dashboard
+           </a>
+           <a class="btn btn-primary" style="border-radius: 8px; font-weight: 600; font-size: 0.9rem;" href="{{ url_for('saved_jobs') }}">
+             <i class="bi bi-bookmark-fill me-1"></i> Saved
+           </a>
+           <div class="dropdown">
+             <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown" style="border-radius: 8px; font-weight: 600; font-size: 0.9rem;">
+               <i class="bi bi-person-circle me-1"></i> {{ current_user.username }}
+             </button>
+             <ul class="dropdown-menu dropdown-menu-end">
+               <li><a class="dropdown-item text-danger" href="/logout">
+                 <i class="bi bi-box-arrow-right me-2"></i> Logout
+               </a></li>
+             </ul>
+           </div>
+         </div>
+       </div>
     </div>
   </nav>
 
@@ -496,40 +496,64 @@
     <!-- Search Card -->
     <div class="search-card">
       <h1 class="search-title"><i class="bi bi-search me-2"></i>Find Your Perfect Job Match</h1>
+      <p style="color: var(--text-secondary); margin-bottom: 2rem; font-size: 1rem;">
+        Tell us about your skills and let our AI find the best opportunities for you
+      </p>
       
-      <form method="post">
+      <form method="post" id="searchForm">
         <div class="row g-3 mb-3">
           <div class="col-md-5">
-            <label class="form-label fw-600 mb-2">Your Skills & Experience</label>
-            <input class="form-control"
-              name="skills"
-              value="{{ skills or '' }}"
-              placeholder="e.g., Python, Machine Learning, 5 years backend...">
+            <div class="form-group">
+              <label class="form-label fw-600 mb-2">
+                <i class="bi bi-star-fill me-1" style="color: var(--primary);"></i>
+                Your Skills & Experience <span style="color: red;">*</span>
+              </label>
+              <input class="form-control" 
+                name="skills"
+                value="{{ skills or '' }}"
+                placeholder="e.g., Python, JavaScript, 5 years full-stack development..."
+                required
+                style="padding: 12px 14px; font-size: 1rem;">
+              <small style="color: var(--text-secondary); display: block; margin-top: 6px;">
+                <i class="bi bi-info-circle me-1"></i>Include skills, languages, frameworks, and years of experience
+              </small>
+            </div>
           </div>
 
           <div class="col-md-3">
-            <label class="form-label fw-600 mb-2">Country</label>
-            <select name="country" id="countrySelect" class="form-select">
-              <option value="">Any Country</option>
-              {% for c in countries %}
-                <option value="{{ c }}" {% if c==selected_country %}selected{% endif %}>{{ c }}</option>
-              {% endfor %}
-            </select>
+            <div class="form-group">
+              <label class="form-label fw-600 mb-2">
+                <i class="bi bi-globe me-1" style="color: var(--primary);"></i>
+                Country
+              </label>
+              <select name="country" id="countrySelect" class="form-select" style="padding: 12px 14px; font-size: 1rem;">
+                <option value="">🌍 Any Country</option>
+                {% for c in countries %}
+                  <option value="{{ c }}" {% if c==selected_country %}selected{% endif %}>{{ c }}</option>
+                {% endfor %}
+              </select>
+            </div>
           </div>
 
           <div class="col-md-3">
-            <label class="form-label fw-600 mb-2">City</label>
-            <select name="city" id="citySelect" class="form-select">
-              <option value="">Any City</option>
-              {% for city in cities %}
-                <option value="{{ city }}" {% if city==selected_city %}selected{% endif %}>{{ city }}</option>
-              {% endfor %}
-            </select>
+            <div class="form-group">
+              <label class="form-label fw-600 mb-2">
+                <i class="bi bi-geo-alt me-1" style="color: var(--primary);"></i>
+                City
+              </label>
+              <select name="city" id="citySelect" class="form-select" style="padding: 12px 14px; font-size: 1rem;">
+                <option value="">📍 Any City</option>
+                {% for city in cities %}
+                  <option value="{{ city }}" {% if city==selected_city %}selected{% endif %}>{{ city }}</option>
+                {% endfor %}
+              </select>
+            </div>
           </div>
         </div>
 
-        <button type="submit" class="btn-search w-100 py-3">
-          <i class="bi bi-search me-2"></i> Get Recommendations
+        <button type="submit" class="btn-search w-100 py-3" id="searchBtn">
+          <i class="bi bi-lightning-charge me-2"></i> Find Matching Jobs
+          <span id="searchSubtitle" style="display: block; font-size: 0.85rem; opacity: 0.9; margin-top: 4px;">Get personalized recommendations in seconds</span>
         </button>
       </form>
     </div>
@@ -555,31 +579,26 @@
                   <div class="job-company">{{ job.company }}</div>
                 {% endif %}
 
-                <!-- Job Meta -->
-                {% if job.location or job.date %}
+                <!-- Job Meta (Date only) -->
+                {% if job.date %}
                   <div class="job-meta">
-                    {% if job.location %}
-                      <div><i class="bi bi-geo-alt"></i> {{ job.location }}</div>
-                    {% endif %}
-                    {% if job.date %}
-                      <div><i class="bi bi-calendar-event"></i> {{ job.date }}</div>
-                    {% endif %}
+                    <div><i class="bi bi-calendar-event"></i> {{ job.date }}</div>
                   </div>
                 {% endif %}
 
                 <!-- Skills -->
-                {% if job.skills %}
-                  <div class="skills-container">
-                    {% for s in job.skills[:5] %}
-                      <span class="skill-badge">{{ s }}</span>
-                    {% endfor %}
-                    {% if job.skills|length > 5 %}
-                      <span class="skill-badge skill-more">
-                        +{{ job.skills|length - 5 }} more
-                      </span>
-                    {% endif %}
-                  </div>
-                {% endif %}
+                 {% if job.skills is defined and job.skills %}
+                   <div class="skills-container">
+                     {% for s in job.skills[:5] %}
+                       <span class="skill-badge">{{ s }}</span>
+                     {% endfor %}
+                     {% if job.skills|length > 5 %}
+                       <span class="skill-badge skill-more">
+                         +{{ job.skills|length - 5 }} more
+                       </span>
+                     {% endif %}
+                   </div>
+                 {% endif %}
               </div>
 
               <!-- Match Percentage -->
@@ -604,21 +623,37 @@
                   <i class="bi bi-lightbulb me-2"></i>Why This Match?
                 </button>
                 <div id="reason{{ loop.index }}" class="collapse">
-                  <div class="reason-content">
+                  <div class="reason-content" style="white-space: pre-line; line-height: 1.9; font-size: 0.9rem;">
                     {{ job.reason_text }}
                   </div>
                 </div>
               {% endif %}
 
+              <!-- Job Details Summary -->
+              <div style="background: #F3F4F6; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; font-size: 0.85rem; color: var(--text-secondary);">
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                  {% if job.job_type %}
+                    <div><strong>Type:</strong> {{ job.job_type }}</div>
+                  {% endif %}
+                  {% if job.location %}
+                    <div><strong>Location:</strong> {{ job.location }}</div>
+                  {% endif %}
+                </div>
+              </div>
+
               <!-- Action Buttons -->
-              <div class="mt-auto">
+              <div class="mt-auto" style="display: flex; flex-direction: column; gap: 0.8rem;">
                 {% if job.link and job.link != '#' %}
-                  <a href="{{ job.link }}" target="_blank" class="btn-job btn-view">
-                    <i class="bi bi-box-arrow-up-right me-2"></i>View Job Details
+                  <a href="{{ job.link }}" target="_blank" class="btn-job btn-view" style="text-align: center;">
+                    <i class="bi bi-box-arrow-up-right me-2"></i>View on LinkedIn
                   </a>
+                {% else %}
+                  <button class="btn-job btn-view" disabled style="opacity: 0.5; cursor: not-allowed;">
+                    <i class="bi bi-link-45deg me-2"></i>No Link Available
+                  </button>
                 {% endif %}
 
-                <button class="btn-job btn-save save-job-btn"
+                <button class="btn-job btn-save save-job-btn" style="text-align: center;"
                   data-job='{{ job|tojson|safe }}'>
                   <i class="bi bi-bookmark me-2"></i><span class="save-text">Save Job</span>
                 </button>
@@ -651,9 +686,11 @@
     const countrySelect = document.getElementById('countrySelect');
     const citySelect = document.getElementById('citySelect');
     const countriesCities = {{ countries_cities|tojson|safe }};
+    const searchForm = document.getElementById('searchForm');
+    const searchBtn = document.getElementById('searchBtn');
 
     countrySelect.addEventListener('change', () => {
-      citySelect.innerHTML = '<option value="">Any City</option>';
+      citySelect.innerHTML = '<option value="">📍 Any City</option>';
       const c = countrySelect.value;
       if (countriesCities[c]) {
         countriesCities[c].forEach(city => {
@@ -663,6 +700,19 @@
           citySelect.appendChild(opt);
         });
       }
+    });
+
+    // Search form submission
+    searchForm.addEventListener('submit', function(e) {
+      searchBtn.disabled = true;
+      searchBtn.innerHTML = '<i class="bi bi-hourglass-split me-2"></i> Searching...';
+      // Re-enable if request takes too long
+      setTimeout(() => {
+        if (searchBtn.disabled) {
+          searchBtn.disabled = false;
+          searchBtn.innerHTML = '<i class="bi bi-lightning-charge me-2"></i> Find Matching Jobs<span id="searchSubtitle" style="display: block; font-size: 0.85rem; opacity: 0.9; margin-top: 4px;">Get personalized recommendations in seconds</span>';
+        }
+      }, 15000);
     });
 
     // Save Job

@@ -11,6 +11,7 @@ import functools
 import json
 from pathlib import Path
 import re
+
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
@@ -28,29 +29,49 @@ DB_URL = os.getenv("DB_URL")
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
+login_manager.login_message = "Silakan login terlebih dahulu."
+login_manager.login_message_category = "warning"
+
+@login_manager.unauthorized_handler
+def unauthorized():
+    flash("Anda harus login terlebih dahulu.", "warning")
+    return redirect(url_for('login'))
 
 def get_db_connection():
-    """Get PostgreSQL database connection"""
-    conn = psycopg2.connect(DB_URL)
-    conn.autocommit = True
-    return conn
+    """Get PostgreSQL database connection for users"""
+    try:
+        conn = psycopg2.connect(DB_URL)
+        return conn
+    except Exception as e:
+        print(f"Database connection error: {e}")
+        return None
 
 def init_user_db():
     """Initialize PostgreSQL user database if not exists."""
     try:
         conn = get_db_connection()
+        if not conn:
+            print("[!] Could not connect to database. Using SQLite fallback.")
+            return
+        
         c = conn.cursor()
+        
+        # Users table
         c.execute('''
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
                 username TEXT UNIQUE NOT NULL,
                 email TEXT UNIQUE NOT NULL,
                 password TEXT NOT NULL,
+                role TEXT DEFAULT 'job_seeker',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         ''')
+        
+        conn.commit()
+        c.close()
         conn.close()
-        print("✓ Database initialized successfully")
+        print("[OK] PostgreSQL user database initialized successfully")
     except Exception as e:
         print(f"Database init error: {e}")
 
@@ -58,21 +79,37 @@ init_user_db()
 
 # User model
 class User(UserMixin):
-    def __init__(self, id, username, email):
+    def __init__(self, id, username, email, role='job_seeker'):
         self.id = id
         self.username = username
         self.email = email
+        self.role = role
+    
+    @property
+    def is_active(self):
+        return True
+    
+    @property
+    def is_authenticated(self):
+        return True
+    
+    @property
+    def is_anonymous(self):
+        return False
     
     @staticmethod
     def get_by_username(username):
         try:
             conn = get_db_connection()
+            if not conn:
+                return None
             c = conn.cursor()
-            c.execute('SELECT id, username, email FROM users WHERE username = %s', (username,))
+            c.execute('SELECT id, username, email, role FROM users WHERE username = %s', (username,))
             row = c.fetchone()
+            c.close()
             conn.close()
             if row:
-                return User(row[0], row[1], row[2])
+                return User(row[0], row[1], row[2], row[3] or 'job_seeker')
         except Exception as e:
             print('get_by_username error:', e)
         return None
@@ -81,12 +118,15 @@ class User(UserMixin):
     def get_by_id(user_id):
         try:
             conn = get_db_connection()
+            if not conn:
+                return None
             c = conn.cursor()
-            c.execute('SELECT id, username, email FROM users WHERE id = %s', (user_id,))
+            c.execute('SELECT id, username, email, role FROM users WHERE id = %s', (user_id,))
             row = c.fetchone()
+            c.close()
             conn.close()
             if row:
-                return User(row[0], row[1], row[2])
+                return User(row[0], row[1], row[2], row[3] or 'job_seeker')
         except Exception as e:
             print('get_by_id error:', e)
         return None
@@ -95,35 +135,67 @@ class User(UserMixin):
     def check_password(username, password):
         try:
             conn = get_db_connection()
+            if not conn:
+                return False
             c = conn.cursor()
-            c.execute('SELECT password FROM users WHERE username = %s', (username,))
+            c.execute('SELECT id, password FROM users WHERE username = %s', (username,))
             row = c.fetchone()
+            c.close()
             conn.close()
-            if row and check_password_hash(row[0], password):
-                return True
+            if row:
+                try:
+                    if check_password_hash(row[1], password):
+                        return True
+                except Exception as hash_err:
+                    print(f'Password hash error: {hash_err}')
+            return False
         except Exception as e:
             print('check_password error:', e)
-        return False
+            return False
     
     @staticmethod
-    def register(username, email, password):
+    def register(username, email, password, role='job_seeker'):
         try:
             hashed_pwd = generate_password_hash(password)
             conn = get_db_connection()
+            if not conn:
+                print('register: connection failed')
+                return False
             c = conn.cursor()
-            c.execute('INSERT INTO users (username, email, password) VALUES (%s, %s, %s)',
-                     (username, email, hashed_pwd))
+            c.execute('INSERT INTO users (username, email, password, role) VALUES (%s, %s, %s, %s)',
+                     (username, email, hashed_pwd, role))
+            conn.commit()
+            c.close()
             conn.close()
+            print(f'register: user {username} created successfully')
             return True
-        except psycopg2.IntegrityError:
+        except psycopg2.IntegrityError as ie:
+            print(f'register: IntegrityError {ie}')
             return False
         except Exception as e:
-            print('User.register error:', e)
+            print(f'User.register error: {e}')
+            import traceback
+            traceback.print_exc()
             return False
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.get_by_id(int(user_id))
+    try:
+        user = User.get_by_id(int(user_id))
+        if user is None:
+            print(f"User {user_id} not found in database")
+            return None
+        return user
+    except Exception as e:
+        print(f"load_user error for user_id {user_id}: {e}")
+        return None
+
+@app.before_request
+def before_request():
+    """Ensure current_user is valid before processing request"""
+    from flask_login import current_user
+    if current_user and not current_user.is_authenticated:
+        pass
 
 
 # ==========================
@@ -143,52 +215,20 @@ def load_graph():
         raise FileNotFoundError("No graph file found (data/graph_jobs_clean.graphml or data/graph_jobs.graphml)")
 
     G = nx.read_graphml(graph_file)
-    print(f"✔ Graph loaded from {graph_file}")
+    print(f"[OK] Graph loaded from {graph_file}")
     return G
 
-
-# ==========================
-# Helper DB
-# ==========================
-def get_jobs(country=None, city=None):
-    try:
-        conn = psycopg2.connect(DB_URL)
-        query = "SELECT * FROM jobs_skills WHERE 1=1"
-        params = []
-
-        if country:
-            query += " AND LOWER(search_country) = LOWER(%s)"
-            params.append(country)
-
-        if city:
-            query += " AND LOWER(search_city) = LOWER(%s)"
-            params.append(city)
-
-        df = pd.read_sql(query, conn, params=params)
-        conn.close()
-        return df
-
-    except Exception as e:
-        print("DB Error:", e)
-        return pd.DataFrame()
-
-
-def get_countries_cities():
-    df = get_jobs()
-    if df.empty:
-        return [], {}
-
-    countries = sorted(df["search_country"].dropna().unique())
-    cities_by_country = {
-        c: sorted(
-            df[df["search_country"] == c]["search_city"]
-            .dropna()
-            .unique()
-        )
-        for c in countries
-    }
-
-    return countries, cities_by_country
+# Pre-load embeddings at startup
+print("[*] Initializing job embeddings (first run, may take 1-2 min)...")
+try:
+     from src.recommender_sentence import load_and_cache_embeddings
+     G = load_graph()
+     # Use force_refresh if needed (set to False for normal startup)
+     FORCE_REFRESH_EMBEDDINGS = os.getenv("FORCE_REFRESH_EMBEDDINGS", "false").lower() == "true"
+     load_and_cache_embeddings(G, DB_URL=DB_URL, force_refresh=FORCE_REFRESH_EMBEDDINGS)
+     print("[OK] Job embeddings ready!")
+except Exception as e:
+     print(f"[!] Job embedding init error: {e}")
 
 
 # ==========================
@@ -213,10 +253,8 @@ def read_saved_jobs(username=None):
     _ensure_user_structure()
     try:
         data = json.loads(SAVED_PATH.read_text(encoding="utf-8"))
-        # handle legacy format where file was a list of jobs
         if isinstance(data, list):
             if username:
-                # migrate legacy list into per-user map under current username
                 new = {username: data}
                 SAVED_PATH.write_text(json.dumps(new, ensure_ascii=False, indent=2), encoding="utf-8")
                 return data
@@ -234,7 +272,6 @@ def write_saved_jobs(jobs, username):
     _ensure_user_structure()
     try:
         data = json.loads(SAVED_PATH.read_text(encoding="utf-8"))
-        # if data is a legacy list, convert to dict and assign under username
         if isinstance(data, list):
             data = {username: data}
 
@@ -251,7 +288,6 @@ def read_reco_logs(username=None):
     _ensure_user_structure()
     try:
         data = json.loads(RECO_LOG_PATH.read_text(encoding="utf-8"))
-        # migrate legacy list -> per-user mapping
         if isinstance(data, list):
             if username:
                 new = {username: data}
@@ -271,7 +307,6 @@ def append_reco_log(entry: dict, username):
     _ensure_user_structure()
     try:
         data = json.loads(RECO_LOG_PATH.read_text(encoding="utf-8"))
-        # if legacy list -> migrate into dict under username
         if isinstance(data, list):
             data = {username: data}
 
@@ -286,7 +321,7 @@ def append_reco_log(entry: dict, username):
 
 
 # ==========================
-# Route
+# Routes
 # ==========================
 @app.route("/", methods=["GET"])
 def landing():
@@ -335,8 +370,12 @@ def login():
         
         if User.check_password(username, password):
             user = User.get_by_username(username)
-            login_user(user)
-            return redirect(url_for('landing'))
+            if user:
+                login_user(user)
+                return redirect(url_for('landing'))
+            else:
+                flash("User not found. Please try again.", "error")
+                return redirect(url_for('login'))
         else:
             flash("Invalid username or password.", "error")
             return redirect(url_for('login'))
@@ -355,10 +394,37 @@ def logout():
 @app.route("/search", methods=["GET", "POST"])
 @login_required
 def index():
+    """Job seeker searches for jobs using sentence matching."""
     error = None
     results = []
+    matching_method = "none"
 
-    countries, countries_cities = get_countries_cities()
+    # Get locations from graph data
+    countries = []
+    countries_cities = {}
+    try:
+        G = load_graph()
+        cities_by_country = {}
+        for node_id, data in G.nodes(data=True):
+            if data.get('type') == 'job':
+                city = data.get('search_city', '').strip()
+                country = data.get('search_country', '').strip()
+                
+                if country:
+                    if country not in cities_by_country:
+                        cities_by_country[country] = set()
+                    if city:
+                        cities_by_country[country].add(city)
+        
+        countries = sorted(list(cities_by_country.keys()))
+        countries_cities = {c: sorted(list(cities_by_country[c])) for c in cities_by_country}
+        
+        print(f"[OK] Loaded {len(countries)} countries and {sum(len(v) for v in countries_cities.values())} cities from graph")
+    except Exception as e:
+        print(f"Error loading graph for locations: {e}")
+        countries = []
+        countries_cities = {}
+    
     selected_country = ""
     selected_city = ""
     skills_text = ""
@@ -369,30 +435,38 @@ def index():
         selected_city = request.form.get("city", "").strip()
 
         try:
-            # ==============================
-            # MODE 1 → Sentence Matching
-            # ==============================
+            # Simple Sentence Matching
             if skills_text:
+                matching_method = "sentence_matching"
+                print(f"\n=== SEARCH REQUEST ===")
+                print(f"Skills: {skills_text}")
+                print(f"Country: {selected_country}")
+                print(f"City: {selected_city}")
+                
+                # Load graph for job matching
                 G = load_graph()
+                
                 t0 = time.time()
+                print(f"\nCalling recommend_jobs_sentence...")
                 results = recommend_jobs_sentence(
                     G,
                     skills_text,
                     top_n=12,
                     filter_country=selected_country,
-                    filter_city=selected_city
+                    filter_city=selected_city,
+                    DB_URL=DB_URL
                 )
-                t1 = time.time()
-                duration = t1 - t0
-
-                # log recommendation query for analytics
+                duration = time.time() - t0
+                print(f"Results returned: {len(results)} jobs in {duration:.2f}s")
+                
+                # Log recommendation query
                 try:
                     mp_vals = [r.get('match_percent') for r in results if r.get('match_percent') is not None]
                     avg_mp = round(sum(mp_vals) / len(mp_vals), 2) if mp_vals else None
                 except Exception:
                     avg_mp = None
 
-                # aggregate top skills from returned results
+                # Extract top skills from query
                 skills_counter_local = {}
                 try:
                     for r in results:
@@ -415,319 +489,51 @@ def index():
                         'avg_match_percent': avg_mp,
                         'duration': round(duration, 3),
                         'top_skills': top_sk_local,
+                        'method': 'sentence_matching'
                     }, current_user.username)
                 except Exception:
                     pass
 
                 if not results:
-                    error = "No relevant jobs found."
-
-            
-            elif selected_country or selected_city:
-                df = get_jobs(
-                    country=selected_country,
-                    city=selected_city
-                )
-
-                if df.empty:
-                    error = "No jobs found for that location."
+                    error = f"No jobs matched your search. Try different keywords."
                 else:
-                    results = []
-
-                    for _, row in df.head(12).iterrows():
-                        results.append({
-                            "job_title": row.get("job_title"),
-                            "company": row.get("company_name"),
-                            "location": f"{row.get('search_city')}, {row.get('search_country')}",
-                            "job_type": row.get("job_type"),
-                            "date": str(row.get("first_seen")),
-                            "skills": (
-                            [s.strip() for s in row.get("skills").split(",")]
-                            if pd.notna(row.get("skills"))
-                            else []
-                        ),
-
-                            "matched_skills": [],
-                            "missing_skills": [],
-                            "match_percent": None,
-                            "reason_text": f"🌍 Job in {selected_city}, {selected_country}. Matches your location preference. Check details for more information.",
-                            "link": row.get("job_link", "#")
+                    # Map results to template format
+                    mapped_results = []
+                    for result in results:
+                        mapped_results.append({
+                            'job_title': result.get('job_title', 'Unknown Job'),
+                            'company': result.get('company', 'Unknown'),
+                            'location': result.get('location', 'TBD'),
+                            'job_type': result.get('job_type', 'Full-time'),
+                            'match_percent': result.get('match_percent', 0),
+                            'skills': result.get('skills', []),
+                            'description': result.get('description', '')[:300] if result.get('description') else '',
+                            'reason_text': result.get('reason_text', f"Matches {result.get('match_percent', 0)}% of your skills"),
+                            'link': result.get('link', '#'),
+                            'date': result.get('date', '')
                         })
+                    
+                    results = mapped_results
+                    print(f"[OK] Found {len(results)} jobs using sentence matching in {duration:.2f}s")
 
-
-            
             else:
-                error = "Please enter skills or select a location first."
+                error = "Please enter skills."
 
         except Exception as e:
-            print("System Error:", e)
-            error = "A system error occurred."
+            print(f"Search error: {e}")
+            import traceback
+            traceback.print_exc()
+            error = f"Error: {str(e)}"
 
     return render_template(
         "index.html",
         results=results,
-        skills=skills_text,
         error=error,
         countries=countries,
         countries_cities=countries_cities,
         selected_country=selected_country,
         selected_city=selected_city,
-        cities=countries_cities.get(selected_country, [])
-    )
-
-
-@app.route("/saved", methods=["GET"])
-@login_required
-def saved_jobs():
-    jobs = read_saved_jobs(current_user.username)
-    return render_template("saved.html", saved=jobs)
-
-
-@app.route("/dashboard", methods=["GET"])
-@login_required
-def dashboard():
-    # load graph to compute job count
-    G = None
-    total_jobs = 0
-    try:
-        G = load_graph()
-        
-        for _, d in G.nodes(data=True):
-            if d.get("type") != "job":
-                continue
-            country = (d.get("search_country") or "").strip().lower()
-            if country and country not in ("", "nan", "none", "unknown"):
-                total_jobs += 1
-    except Exception as e:
-        print("dashboard: load_graph failed:", e)
-        total_jobs = 0
-
-    countries, countries_cities = get_countries_cities()
-    saved = read_saved_jobs(current_user.username)
-
-    # compute jobs per country and top skills
-    jobs_per_country = {}
-    skills_counter = {}
-    try:
-        if G is not None:
-            for _, d in G.nodes(data=True):
-                if d.get("type") != "job":
-                    continue
-                # Safely extract country, handling NaN/None
-                country = d.get("search_country")
-                if pd.isna(country):
-                    country = d.get("job_location")
-                # Normalize and guard against string 'nan' or empty
-                country_str = str(country).strip() if country is not None else ""
-                if country_str.lower() in ("", "nan", "none"):
-                    country_str = "Unknown"
-
-                jobs_per_country[country_str] = jobs_per_country.get(country_str, 0) + 1
-
-                # Safely extract skills
-                skills_raw = d.get("skills_raw") if d.get("skills_raw") is not None else d.get("skills")
-                if pd.isna(skills_raw):
-                    skills_raw = ""
-                if skills_raw:
-                    # soft-skill blacklist: common/high-frequency generic skills to ignore
-                    SOFT_SKILLS_BLACKLIST = {
-                        "communication",
-                        "communication skills",
-                        "strong communication",
-                        "good communication",
-                        "verbal communication",
-                        "written communication",
-                        "teamwork",
-                        "team player",
-                        "collaboration",
-                        "leadership",
-                        "problem solving",
-                        "customer service",
-                        "ability to",
-                        "excellent",
-                        "willingness",
-                        "skill",
-                        "skills",
-                        "interpersonal",
-                        "organizational",
-                        "flexible",
-                    }
-
-                    for s in str(skills_raw).split(","):
-                        sk = s.strip().lower()
-                        if not sk or sk in ("nan", "none"):
-                            continue
-
-                        # normalize by removing punctuation and extra spaces
-                        sk_norm = re.sub(r"[^a-z0-9+ #.+-]", " ", sk).strip()
-
-                        # skip if any blacklist phrase appears inside the skill text
-                        skip = False
-                        for bad in SOFT_SKILLS_BLACKLIST:
-                            if bad in sk_norm:
-                                skip = True
-                                break
-                        if skip:
-                            continue
-
-                        skills_counter[sk_norm] = skills_counter.get(sk_norm, 0) + 1
-    except Exception:
-        pass
-
-    # top skills list
-    top_skills = sorted(skills_counter.items(), key=lambda x: x[1], reverse=True)[:12]
-
-    # Remove unwanted keys so dashboard is clean (do not display Unknown/empty)
-    for bad in ["Unknown", "", "nan", "none"]:
-        jobs_per_country.pop(bad, None)
-
-    # compute countries count excluding unknown/empty
-    countries_count = len([k for k in jobs_per_country.keys() if str(k).strip() and str(k).strip().lower() not in ("nan", "none")])
-
-    stats = {
-        "total_jobs": total_jobs,
-        "countries": countries_count,
-        "saved_jobs": len(saved),
-    }
-
-    # debug log to help diagnose empty charts
-    try:
-        print(f"dashboard: total_jobs={total_jobs}, countries_in_payload={len(jobs_per_country)}, top_skills={top_skills[:5]}")
-    except Exception:
-        pass
-
-    # Recommendation logs analytics
-    reco_logs = read_reco_logs(current_user.username)
-    recommend_stats = {}
-    recommend_recent = []
-    try:
-        if reco_logs:
-            total_q = len(reco_logs)
-            total_results = sum((l.get('num_results') or 0) for l in reco_logs)
-            avg_results = total_results / total_q if total_q else 0
-            lat_sum = sum((l.get('duration') or 0) for l in reco_logs)
-            avg_latency = lat_sum / total_q if total_q else 0
-            match_vals = [l.get('avg_match_percent') for l in reco_logs if l.get('avg_match_percent') is not None]
-            avg_match = (sum(match_vals) / len(match_vals)) if match_vals else None
-
-            # top queries
-            from collections import Counter
-            qcounts = Counter([ (l.get('query') or '').strip().lower() for l in reco_logs ])
-            top_queries = qcounts.most_common(8)
-
-            # buckets for avg match percent
-            buckets = {"0-19":0, "20-39":0, "40-59":0, "60-79":0, "80-100":0}
-            for l in reco_logs:
-                m = l.get('avg_match_percent')
-                if m is None:
-                    continue
-                try:
-                    m = float(m)
-                except Exception:
-                    continue
-                if m < 20:
-                    buckets['0-19'] += 1
-                elif m < 40:
-                    buckets['20-39'] += 1
-                elif m < 60:
-                    buckets['40-59'] += 1
-                elif m < 80:
-                    buckets['60-79'] += 1
-                else:
-                    buckets['80-100'] += 1
-
-            recommend_stats = {
-                'total_queries': total_q,
-                'avg_results': round(avg_results,2),
-                'avg_latency': round(avg_latency,3),
-                'avg_match_percent': round(avg_match,2) if avg_match is not None else None,
-                'top_queries': top_queries,
-                'match_buckets': buckets
-            }
-
-            recent_raw = reco_logs[-10:]
-            # reverse chronological
-            recommend_recent = list(reversed([{
-                'time': r.get('ts'), 'query': r.get('query'), 'num_results': r.get('num_results'),
-                'avg_match_percent': r.get('avg_match_percent'), 'duration': r.get('duration')
-            } for r in recent_raw]))
-
-            timeseries_labels = []
-            timeseries_values = []
-            try:
-                import datetime
-                now_ts = time.time()
-                thirty_days_ago = now_ts - (30 * 86400)
-
-                daily_matches = {}
-                for log in reco_logs:
-                    ts = log.get('ts', 0)
-                    if ts < thirty_days_ago:
-                        continue
-                    log_date = datetime.datetime.fromtimestamp(ts).strftime("%Y-%m-%d")
-                    if log_date not in daily_matches:
-                        daily_matches[log_date] = []
-                    m = log.get('avg_match_percent')
-                    if m is not None:
-                        try:
-                            daily_matches[log_date].append(float(m))
-                        except:
-                            pass
-                
-                for date in sorted(daily_matches.keys()):
-                    matches = daily_matches[date]
-                    if matches:
-                        avg_m = sum(matches) / len(matches)
-                        timeseries_labels.append(date)
-                        timeseries_values.append(round(avg_m,2))
-                
-                if timeseries_labels:
-                    recommend_stats['timeseries'] = {
-                        'labels': timeseries_labels,
-                        'values': timeseries_values
-                    }
-            except Exception:
-                pass
-
-            # Latency percentiles
-            try:
-                latencies = [l.get('duration') or 0 for l in reco_logs if l.get('duration') is not None]
-                if latencies:
-                    latencies.sort()
-                    n = len(latencies)
-                    recommend_stats['latency_p50'] = round(latencies[int(n * 0.5)], 3)
-                    recommend_stats['latency_p90'] = round(latencies[int(n * 0.9)], 3)
-                    recommend_stats['latency_p99'] = round(latencies[int(n * 0.99)], 3)
-            except Exception:
-                pass
-
-            # Top skills from queries
-            try:
-                skills_from_queries = {}
-                for log in reco_logs:
-                    skills = log.get('top_skills', []) or []
-                    for skill in skills:
-                        sk = skill.strip().lower()
-                        skills_from_queries[sk] = skills_from_queries.get(sk, 0) + 1
-                top_sk_q = sorted(skills_from_queries.items(), key=lambda x: x[1], reverse=True)[:8]
-                if top_sk_q:
-                    recommend_stats['top_skills_queries'] = top_sk_q
-            except Exception:
-                pass
-    except Exception:
-        recommend_stats = {}
-        recommend_recent = []
-        
-
-
-    return render_template(
-        "dashboard.html",
-        stats=stats,
-        jobs_per_country=jobs_per_country,
-        top_skills=top_skills,
-        recent_saved=saved[-8:][::-1],
-        recommend_stats=recommend_stats,
-        recommend_recent=recommend_recent
+        skills=skills_text
     )
 
 
@@ -740,14 +546,13 @@ def save_job():
             return {"success": False, "message": "No job data provided"}, 400
 
         jobs = read_saved_jobs(current_user.username)
-        # dedupe by link if available, else by job title+company+location
         link = data.get("link")
         exists = False
         for j in jobs:
             if link and j.get("link") == link:
                 exists = True
                 break
-            if (not link) and j.get("job_title") == data.get("job_title") and j.get("company") == data.get("company") and j.get("location") == data.get("location"):
+            if (not link) and j.get("job_title") == data.get("job_title") and j.get("company") == data.get("company"):
                 exists = True
                 break
 
@@ -778,5 +583,160 @@ def remove_saved():
         return {"success": False, "message": str(e)}, 500
 
 
+@app.route("/saved_jobs", methods=["GET"])
+@login_required
+def saved_jobs():
+    jobs = read_saved_jobs(current_user.username)
+    return render_template("saved.html", saved=jobs)
+
+
+@app.route("/dashboard", methods=["GET"])
+@login_required
+def dashboard():
+    stats = {}
+    recommend_stats = {}
+    recommend_recent = []
+    jobs_per_country = {}
+    top_skills = []
+    recent_saved = []
+    
+    try:
+        # Load graph for stats
+        G = load_graph()
+        
+        # Count jobs per country and skills from graph edges
+        jobs_per_country = {}
+        top_skills_dict = {}
+        
+        for node_id, data in G.nodes(data=True):
+            if data.get('type') == 'job':
+                country = data.get('search_country', 'Unknown')
+                jobs_per_country[country] = jobs_per_country.get(country, 0) + 1
+                
+                # Get skills connected to this job node
+                successors = list(G.successors(node_id))
+                for successor_id in successors:
+                    succ_data = G.nodes.get(successor_id, {})
+                    if succ_data.get('type') == 'skill':
+                        skill_label = succ_data.get('label', successor_id)
+                        top_skills_dict[skill_label] = top_skills_dict.get(skill_label, 0) + 1
+        
+        top_skills = sorted(top_skills_dict.items(), key=lambda x: x[1], reverse=True)[:10]
+        
+        # Get user's saved jobs
+        recent_saved = read_saved_jobs(current_user.username)[-5:] if read_saved_jobs(current_user.username) else []
+        
+        # Get recommendation stats from logs
+        reco_logs = read_reco_logs(current_user.username)
+        if reco_logs:
+            total_queries = len(reco_logs)
+            match_percents = [r.get('avg_match_percent', 0) for r in reco_logs if r.get('avg_match_percent') is not None]
+            avg_match = sum(match_percents) / len(match_percents) if match_percents else 0
+            avg_results = sum(r.get('num_results', 0) for r in reco_logs) / len(reco_logs) if reco_logs else 0
+            latencies = [r.get('duration', 0) for r in reco_logs]
+            avg_latency = sum(latencies) / len(latencies) if latencies else 0
+            
+            # Top queries
+            query_counts = {}
+            for r in reco_logs:
+                q = r.get('query', 'Unknown')
+                query_counts[q] = query_counts.get(q, 0) + 1
+            top_queries = sorted(query_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+            
+            # Top skills from queries
+            top_skills_queries = {}
+            for r in reco_logs:
+                for s in r.get('top_skills', []):
+                    top_skills_queries[s] = top_skills_queries.get(s, 0) + 1
+            top_skills_queries_list = sorted(top_skills_queries.items(), key=lambda x: x[1], reverse=True)[:5]
+            
+            # Match distribution buckets (0-20%, 20-40%, etc.)
+            match_buckets = {'0-20%': 0, '20-40%': 0, '40-60%': 0, '60-80%': 0, '80-100%': 0}
+            for mp in match_percents:
+                if mp < 20:
+                    match_buckets['0-20%'] += 1
+                elif mp < 40:
+                    match_buckets['20-40%'] += 1
+                elif mp < 60:
+                    match_buckets['40-60%'] += 1
+                elif mp < 80:
+                    match_buckets['60-80%'] += 1
+                else:
+                    match_buckets['80-100%'] += 1
+            
+            # 30-day timeseries
+            from datetime import datetime, timedelta
+            now = datetime.now()
+            thirty_days_ago = now - timedelta(days=30)
+            daily_matches = {}
+            
+            for r in reco_logs:
+                ts = r.get('ts', 0)
+                if ts:
+                    date = datetime.fromtimestamp(ts).date()
+                    if date >= thirty_days_ago.date():
+                        if str(date) not in daily_matches:
+                            daily_matches[str(date)] = []
+                        mp = r.get('avg_match_percent', 0)
+                        if mp is not None:
+                            daily_matches[str(date)].append(mp)
+            
+            # Average match per day
+            timeseries_labels = []
+            timeseries_values = []
+            for date in sorted(daily_matches.keys()):
+                timeseries_labels.append(date)
+                avg = sum(daily_matches[date]) / len(daily_matches[date])
+                timeseries_values.append(round(avg, 1))
+            
+            # Latency percentiles
+            if latencies:
+                sorted_latencies = sorted(latencies)
+                p50_idx = len(sorted_latencies) // 2
+                p90_idx = int(len(sorted_latencies) * 0.9)
+                p99_idx = int(len(sorted_latencies) * 0.99)
+                latency_p50 = round(sorted_latencies[p50_idx] * 1000, 0)  # convert to ms
+                latency_p90 = round(sorted_latencies[min(p90_idx, len(sorted_latencies)-1)] * 1000, 0)
+                latency_p99 = round(sorted_latencies[min(p99_idx, len(sorted_latencies)-1)] * 1000, 0)
+            else:
+                latency_p50 = latency_p90 = latency_p99 = '-'
+            
+            recommend_stats = {
+                'total_queries': total_queries,
+                'avg_match_percent': round(avg_match, 1),
+                'avg_results': round(avg_results),
+                'avg_latency': round(avg_latency, 3),
+                'top_queries': top_queries,
+                'top_skills_queries': top_skills_queries_list,
+                'match_buckets': match_buckets,
+                'timeseries': {'labels': timeseries_labels, 'values': timeseries_values},
+                'latency_p50': latency_p50,
+                'latency_p90': latency_p90,
+                'latency_p99': latency_p99
+            }
+            
+            recommend_recent = sorted(reco_logs, key=lambda x: x.get('ts', 0), reverse=True)[:5]
+        
+        # Basic stats
+        stats = {
+            'total_jobs': len([n for n, d in G.nodes(data=True) if d.get('type') == 'job']),
+            'countries': len(jobs_per_country),
+            'saved_jobs': len(recent_saved)
+        }
+        
+    except Exception as e:
+        print(f"Dashboard stats error: {e}")
+    
+    return render_template(
+        "dashboard.html",
+        stats=stats,
+        recommend_stats=recommend_stats,
+        recommend_recent=recommend_recent,
+        jobs_per_country=jobs_per_country,
+        top_skills=top_skills,
+        recent_saved=recent_saved
+    )
+
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, use_reloader=False)

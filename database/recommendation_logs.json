@@ -80,5 +80,533 @@
         "microsoft office suite"
       ]
     }
+  ],
+  "amld444": [
+    {
+      "ts": 1765543668.394314,
+      "query": "python",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 12,
+      "avg_match_percent": 29.92,
+      "duration": 27.614,
+      "top_skills": []
+    },
+    {
+      "ts": 1765543744.1056092,
+      "query": "python",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 12,
+      "avg_match_percent": 29.92,
+      "duration": 0.337,
+      "top_skills": []
+    },
+    {
+      "ts": 1765543777.4611855,
+      "query": "python",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 12,
+      "avg_match_percent": 29.92,
+      "duration": 0.038,
+      "top_skills": []
+    },
+    {
+      "ts": 1765544061.9706812,
+      "query": "python",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 12,
+      "avg_match_percent": 29.92,
+      "duration": 0.368,
+      "top_skills": []
+    },
+    {
+      "ts": 1765544315.3792295,
+      "query": "python",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 12,
+      "avg_match_percent": 29.92,
+      "duration": 24.509,
+      "top_skills": []
+    },
+    {
+      "ts": 1765544467.7097824,
+      "query": "python, Microsoft Access, Microsoft Excel, Microsoft Office software, Microsoft Outlook",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 12,
+      "avg_match_percent": 27.92,
+      "duration": 25.861,
+      "top_skills": []
+    },
+    {
+      "ts": 1765544726.5154955,
+      "query": "python, Microsoft Access, Microsoft Excel, Microsoft Office software, Microsoft Outlook",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 12,
+      "avg_match_percent": 27.92,
+      "duration": 26.002,
+      "top_skills": []
+    },
+    {
+      "ts": 1765545206.2352207,
+      "query": "python, Microsoft Access, Microsoft Excel, Microsoft Office software, Microsoft Outlook",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 12,
+      "avg_match_percent": 32.5,
+      "duration": 61.841,
+      "top_skills": [
+        "microsoft office",
+        "communication",
+        "accounting",
+        "multitasking",
+        "time management"
+      ]
+    },
+    {
+      "ts": 1765562113.097993,
+      "query": "python",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 12,
+      "avg_match_percent": 34.83,
+      "duration": 22.185,
+      "top_skills": [
+        "python",
+        "machine learning",
+        "sql",
+        "pytorch",
+        "data mining"
+      ]
+    },
+    {
+      "ts": 1765562204.302413,
+      "query": "python",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 12,
+      "avg_match_percent": 34.83,
+      "duration": 0.056,
+      "top_skills": [
+        "python",
+        "machine learning",
+        "sql",
+        "pytorch",
+        "data mining"
+      ]
+    },
+    {
+      "ts": 1765562240.8438501,
+      "query": "python",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 12,
+      "avg_match_percent": 34.83,
+      "duration": 0.028,
+      "top_skills": [
+        "python",
+        "machine learning",
+        "sql",
+        "pytorch",
+        "data mining"
+      ]
+    },
+    {
+      "ts": 1765562302.2784936,
+      "query": "python",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 12,
+      "avg_match_percent": 34.83,
+      "duration": 0.02,
+      "top_skills": [
+        "python",
+        "machine learning",
+        "sql",
+        "pytorch",
+        "data mining"
+      ]
+    },
+    {
+      "ts": 1765562372.5936007,
+      "query": "python",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 12,
+      "avg_match_percent": 34.83,
+      "duration": 0.024,
+      "top_skills": [
+        "python",
+        "machine learning",
+        "sql",
+        "pytorch",
+        "data mining"
+      ]
+    },
+    {
+      "ts": 1765562439.7294502,
+      "query": "python",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 12,
+      "avg_match_percent": 34.83,
+      "duration": 0.047,
+      "top_skills": [
+        "python",
+        "machine learning",
+        "sql",
+        "pytorch",
+        "data mining"
+      ]
+    },
+    {
+      "ts": 1765562536.992645,
+      "query": "python",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 12,
+      "avg_match_percent": 34.83,
+      "duration": 0.031,
+      "top_skills": [
+        "python",
+        "machine learning",
+        "sql",
+        "pytorch",
+        "data mining"
+      ]
+    },
+    {
+      "ts": 1765562609.3731759,
+      "query": "python",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 12,
+      "avg_match_percent": 34.83,
+      "duration": 12.047,
+      "top_skills": [
+        "python",
+        "machine learning",
+        "sql",
+        "pytorch",
+        "data mining"
+      ]
+    },
+    {
+      "ts": 1765562657.1717846,
+      "query": "python",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 12,
+      "avg_match_percent": 34.83,
+      "duration": 0.02,
+      "top_skills": [
+        "python",
+        "machine learning",
+        "sql",
+        "pytorch",
+        "data mining"
+      ]
+    },
+    {
+      "ts": 1765562695.2682667,
+      "query": "python",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 12,
+      "avg_match_percent": 34.83,
+      "duration": 11.904,
+      "top_skills": [
+        "python",
+        "machine learning",
+        "sql",
+        "pytorch",
+        "data mining"
+      ]
+    },
+    {
+      "ts": 1765564607.2575004,
+      "query": "python",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 12,
+      "avg_match_percent": 34.83,
+      "duration": 22.223,
+      "top_skills": [
+        "python",
+        "machine learning",
+        "sql",
+        "pytorch",
+        "data mining"
+      ]
+    },
+    {
+      "ts": 1765565974.7451668,
+      "query": "python",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 0,
+      "avg_match_percent": null,
+      "duration": 0.303,
+      "top_skills": [],
+      "method": "bidirectional_sentence_matching"
+    },
+    {
+      "ts": 1765565989.829335,
+      "query": "python",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 0,
+      "avg_match_percent": null,
+      "duration": 0.023,
+      "top_skills": [],
+      "method": "bidirectional_sentence_matching"
+    },
+    {
+      "ts": 1765566130.066417,
+      "query": "python",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 0,
+      "avg_match_percent": null,
+      "duration": 0.247,
+      "top_skills": [],
+      "method": "bidirectional_sentence_matching"
+    },
+    {
+      "ts": 1765566264.9068267,
+      "query": "python",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 0,
+      "avg_match_percent": null,
+      "duration": 0.11,
+      "top_skills": [],
+      "method": "bidirectional_sentence_matching"
+    },
+    {
+      "ts": 1765566269.8324609,
+      "query": "python",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 0,
+      "avg_match_percent": null,
+      "duration": 0.02,
+      "top_skills": [],
+      "method": "bidirectional_sentence_matching"
+    },
+    {
+      "ts": 1765566299.219355,
+      "query": "python",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 0,
+      "avg_match_percent": null,
+      "duration": 0.018,
+      "top_skills": [],
+      "method": "bidirectional_sentence_matching"
+    },
+    {
+      "ts": 1765566517.8613362,
+      "query": "python",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 0,
+      "avg_match_percent": null,
+      "duration": 0.053,
+      "top_skills": [],
+      "method": "bidirectional_sentence_matching"
+    },
+    {
+      "ts": 1765592132.339697,
+      "query": "python developer",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 1,
+      "avg_match_percent": 47.0,
+      "duration": 0.063,
+      "top_skills": [
+        "linux",
+        "shell",
+        "python",
+        "git",
+        "maven"
+      ],
+      "method": "bidirectional_sentence_matching"
+    },
+    {
+      "ts": 1765592138.14018,
+      "query": "python, Microsoft Access, Microsoft Excel, Microsoft Office software, Microsoft Outlook",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 0,
+      "avg_match_percent": null,
+      "duration": 0.028,
+      "top_skills": [],
+      "method": "bidirectional_sentence_matching"
+    },
+    {
+      "ts": 1765592143.529142,
+      "query": "python, Microsoft Access, Microsoft Excel, Microsoft Office software, Microsoft Outlook",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 0,
+      "avg_match_percent": null,
+      "duration": 0.035,
+      "top_skills": [],
+      "method": "bidirectional_sentence_matching"
+    },
+    {
+      "ts": 1765592856.695339,
+      "query": "python",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 0,
+      "avg_match_percent": null,
+      "duration": 0.049,
+      "top_skills": [],
+      "method": "bidirectional_sentence_matching"
+    },
+    {
+      "ts": 1765593050.6978676,
+      "query": "python",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 0,
+      "avg_match_percent": null,
+      "duration": 0.13,
+      "top_skills": [],
+      "method": "bidirectional_sentence_matching"
+    },
+    {
+      "ts": 1765593057.1532748,
+      "query": "python",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 0,
+      "avg_match_percent": null,
+      "duration": 0.027,
+      "top_skills": [],
+      "method": "bidirectional_sentence_matching"
+    },
+    {
+      "ts": 1765593186.5880017,
+      "query": "python, Microsoft Access, Microsoft Excel, Microsoft Office software, Microsoft Outlook",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 0,
+      "avg_match_percent": null,
+      "duration": 0.054,
+      "top_skills": [],
+      "method": "bidirectional_sentence_matching"
+    },
+    {
+      "ts": 1765593797.1482215,
+      "query": "python",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 12,
+      "avg_match_percent": 34.83,
+      "duration": 14.706,
+      "top_skills": [
+        "python",
+        "machine learning",
+        "sql",
+        "pytorch",
+        "data mining"
+      ],
+      "method": "sentence_matching"
+    },
+    {
+      "ts": 1765594544.0538752,
+      "query": "python",
+      "filter_country": "Australia",
+      "filter_city": "New South Wales",
+      "num_results": 8,
+      "avg_match_percent": 10.62,
+      "duration": 13.28,
+      "top_skills": [
+        "customer service",
+        "communication",
+        "project management",
+        "people management",
+        "contract management"
+      ],
+      "method": "sentence_matching"
+    },
+    {
+      "ts": 1765594560.1627486,
+      "query": "python, Ansys Fluent, Aurora HelioScope, Autodesk AutoCAD, Autodesk AutoCAD LT",
+      "filter_country": "Australia",
+      "filter_city": "",
+      "num_results": 12,
+      "avg_match_percent": 17.17,
+      "duration": 0.046,
+      "top_skills": [
+        "attention to detail",
+        "project management",
+        "communication skills",
+        "team management",
+        "written communication"
+      ],
+      "method": "sentence_matching"
+    },
+    {
+      "ts": 1765595456.6923351,
+      "query": "welder, MIG, TIG",
+      "filter_country": "Canada",
+      "filter_city": "Chambly",
+      "num_results": 5,
+      "avg_match_percent": 12.2,
+      "duration": 0.374,
+      "top_skills": [
+        "teamwork",
+        "french",
+        "communication",
+        "problem solving",
+        "time management"
+      ],
+      "method": "sentence_matching"
+    },
+    {
+      "ts": 1765595479.2093227,
+      "query": "welder, MIG, TIG",
+      "filter_country": "Australia",
+      "filter_city": "Brisbane",
+      "num_results": 1,
+      "avg_match_percent": 8.0,
+      "duration": 0.033,
+      "top_skills": [
+        "racgp accredited course",
+        "skin cancer",
+        "procedural nurses",
+        "private consults",
+        "pathology lab"
+      ],
+      "method": "sentence_matching"
+    }
+  ],
+  "amlduser": [
+    {
+      "ts": 1765602589.4025311,
+      "query": "python, Microsoft Access, Microsoft Excel, Microsoft Office software, Microsoft Outlook",
+      "filter_country": "",
+      "filter_city": "",
+      "num_results": 12,
+      "avg_match_percent": 32.5,
+      "duration": 33.637,
+      "top_skills": [
+        "microsoft office",
+        "communication",
+        "accounting",
+        "multitasking",
+        "time management"
+      ],
+      "method": "sentence_matching"
+    }
   ]
 }
