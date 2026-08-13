@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}{{ profile.full_name or 'Profil' }} - JobMatch{% endblock %}
+{% block page_content %}
+<div class="container py-6" style="max-width:820px">
+  <div class="card p-6">
+    <div class="flex justify-between items-start mb-3">
+      <div>
+        <h1 class="page-header__title mb-1">{{ profile.full_name or 'Pengguna' }}</h1>
+        {% if profile.headline %}
+          <p class="text-muted" style="font-size:1rem">{{ profile.headline }}</p>
+        {% endif %}
+      </div>
+      {% if profile_owner %}
+        <a href="/profile" class="btn btn-outline btn-sm"><i class="bi bi-pencil me-1"></i>Edit</a>
+      {% endif %}
+    </div>
+
+    <div class="flex flex-wrap gap-4 mb-4">
+      {% if profile.location %}
+        <span class="text-sm text-muted"><i class="bi bi-geo-alt me-1" style="color:var(--primary)"></i>{{ profile.location }}</span>
+      {% endif %}
+      {% if profile.experience_years %}
+        <span class="text-sm text-muted"><i class="bi bi-briefcase me-1" style="color:var(--primary)"></i>{{ profile.experience_years }} tahun pengalaman</span>
+      {% endif %}
+      {% if profile.education %}
+        <span class="text-sm text-muted"><i class="bi bi-mortarboard me-1" style="color:var(--primary)"></i>{{ profile.education }}</span>
+      {% endif %}
+      {% if profile.expected_salary_min %}
+        <span class="text-sm text-muted"><i class="bi bi-cash me-1" style="color:var(--primary)"></i>Min Rp {{ "{:,.0f}".format(profile.expected_salary_min|int) }}</span>
+      {% endif %}
+      {% if profile.phone %}
+        <span class="text-sm text-muted"><i class="bi bi-telephone me-1" style="color:var(--primary)"></i>{{ profile.phone }}</span>
+      {% endif %}
+    </div>
+
+    {% if profile.about %}
+    <div class="mb-4">
+      <h6 class="font-bold mb-2">Tentang</h6>
+      <p class="text-muted" style="white-space:pre-line">{{ profile.about }}</p>
+    </div>
+    {% endif %}
+
+    {% if profile.skills %}
+    <div class="mb-4">
+      <h6 class="font-bold mb-2">Keahlian</h6>
+      <div class="flex flex-wrap gap-1">
+        {% for s in profile.skills %}
+          <span class="skill-badge skill-badge--primary">{{ s }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if profile.portfolio_url %}
+    <a href="{{ profile.portfolio_url }}" target="_blank" class="btn btn-outline btn-sm">
+      <i class="bi bi-box-arrow-up-right me-1"></i>Portfolio
+    </a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

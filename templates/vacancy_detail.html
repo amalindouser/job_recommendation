@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% block title %}{{ vacancy.job_title }} - JobMatch{% endblock %}
+{% block page_content %}
+<div class="container py-6">
+  <a href="/vacancies" class="btn btn-ghost mb-4"><i class="bi bi-arrow-left me-1"></i> Kembali</a>
+
+  <div class="card mb-4">
+    <div class="card-body">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        {% if company_logo %}
+          <img src="{{ company_logo }}" alt="{{ vacancy.company }}" style="width:48px;height:48px;border-radius:10px;object-fit:cover;flex-shrink:0;">
+        {% else %}
+          <div style="width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:700;color:white;flex-shrink:0;">
+            {{ vacancy.company[:1] if vacancy.company else '?' }}
+          </div>
+        {% endif %}
+        <div>
+          <h3 class="h4 mb-1">
+            {{ vacancy.job_title }}
+            {% if not vacancy.historical %}
+              <span class="badge badge-success" style="font-size:0.6rem;vertical-align:middle">Baru</span>
+            {% endif %}
+          </h3>
+          <p class="text-muted mb-0"><i class="bi bi-building me-1"></i>{{ vacancy.company }}</p>
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-2 mb-3 text-sm text-muted">
+        {% if vacancy.job_level %}<span><i class="bi bi-bar-chart me-1"></i>{{ vacancy.job_level }}</span>{% endif %}
+        {% if vacancy.job_type %}<span><i class="bi bi-clock me-1"></i>{{ vacancy.job_type }}</span>{% endif %}
+        {% if vacancy.location %}<span><i class="bi bi-geo-alt me-1"></i>{{ vacancy.location }}</span>{% endif %}
+        {% if vacancy.salary_min or vacancy.salary_max %}
+          <span><i class="bi bi-cash me-1"></i>
+          {% if vacancy.salary_min and vacancy.salary_max %}
+            Rp {{ "{:,.0f}".format(vacancy.salary_min|int) }} - Rp {{ "{:,.0f}".format(vacancy.salary_max|int) }}
+          {% elif vacancy.salary_min %}
+            &ge; Rp {{ "{:,.0f}".format(vacancy.salary_min|int) }}
+          {% elif vacancy.salary_max %}
+            &le; Rp {{ "{:,.0f}".format(vacancy.salary_max|int) }}
+          {% endif %}
+          </span>
+        {% endif %}
+      </div>
+      {% if vacancy.description %}
+      <div class="mb-3">
+        <h6 class="font-semibold mb-2">Deskripsi</h6>
+        <p class="text-muted" style="white-space:pre-line;font-size:0.9rem">{{ vacancy.description }}</p>
+      </div>
+      {% endif %}
+      <div>
+        {% if vacancy.categorized_skills is defined and vacancy.categorized_skills %}
+          {% for cat, skills in vacancy.categorized_skills.items() %}
+          <div class="mb-2">
+            <small class="text-muted font-semibold d-block mb-1" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.5px">{{ cat }}</small>
+            <div>
+            {% for s in skills %}
+              <span class="skill-badge me-1 mb-1">{{ s }}</span>
+            {% endfor %}
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          {% for skill in (vacancy.skills.split(',') if vacancy.skills is string else vacancy.skills) %}
+          <span class="skill-badge me-1 mb-1">{{ skill.strip() if skill is string else skill }}</span>
+          {% endfor %}
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  {% if match_score is not none and not vacancy.historical %}
+  <div class="card mb-4">
+    <div class="card-body text-center">
+      <h6 class="font-semibold mb-3"><i class="bi bi-graph-up-arrow me-1"></i>Kecocokan dengan Profilmu</h6>
+      <div class="flex items-center justify-center gap-4">
+        <div style="width:80px;height:80px;position:relative">
+          <svg viewBox="0 0 36 36" style="width:80px;height:80px">
+            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#E5E7EB" stroke-width="3" />
+            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="{% if match_score >= 70 %}#10B981{% elif match_score >= 40 %}#F59E0B{% else %}#EF4444{% endif %}" stroke-width="3" stroke-dasharray="{{ match_score }}, 100" />
+          </svg>
+          <span class="font-bold" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.2rem">{{ match_score }}%</span>
+        </div>
+        <div class="text-start text-sm text-muted">
+          {% if match_score >= 70 %}
+            <span class="text-success font-semibold">Sangat cocok!</span> — skill-mu sangat sesuai.
+          {% elif match_score >= 40 %}
+            <span class="text-warning font-semibold">Cukup cocok</span> — beberapa skill sesuai.
+          {% else %}
+            <span class="text-danger font-semibold">Kurang cocok</span> — banyak skill yang belum sesuai.
+          {% endif %}
+          <br><a href="/profile" class="text-primary">Lengkapi profil</a> untuk kecocokan lebih akurat.
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="card">
+    <div class="card-body">
+      <div class="flex items-center justify-between mb-3" style="display:flex;justify-content:space-between;align-items:center">
+        <h5 class="font-bold mb-0"><i class="bi bi-send me-2"></i>Lamar Lowongan</h5>
+        <button type="button" class="btn btn-outline btn-sm save-job-btn"
+          data-save='{{ {"job_title": vacancy.job_title, "company": vacancy.company, "location": vacancy.location, "job_type": vacancy.job_type, "link": "/vacancies/" ~ vacancy.id, "date": vacancy.created_at, "skills": vacancy.skills, "match_percent": 0} | tojson }}'>
+          <i class="bi bi-bookmark me-1"></i>Simpan
+        </button>
+      </div>
+      {% if vacancy.historical %}
+        <div class="alert alert-info">Lowongan historis — lamaran tidak dapat dikirim.</div>
+      {% elif has_applied %}
+        <div class="alert alert-success">Anda sudah melamar lowongan ini.</div>
+      {% else %}
+        <form action="/vacancies/{{ vacancy.id }}/apply" method="POST" enctype="multipart/form-data">
+          <div class="form-group">
+            <label class="form-label" for="cv">Upload CV File</label>
+            <input type="file" class="form-input" id="cv" name="cv" accept=".pdf,.doc,.docx" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="cover_letter">Cover Letter</label>
+            <textarea class="form-textarea" id="cover_letter" name="cover_letter" rows="5" placeholder="Tulis surat lamaran Anda..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-loading" data-loading="Mengirim...">Kirim Lamaran</button>
+        </form>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if similar_jobs %}
+  <div class="card mt-4">
+    <div class="card-body">
+      <h5 class="font-bold mb-3"><i class="bi bi-graph-up me-2"></i>Lowongan Lain yang Mungkin Kamu Suka</h5>
+      <div class="grid grid-cols-4 gap-3">
+        {% for sj in similar_jobs[:4] %}
+        <div class="card">
+          <div class="card-body">
+            <h6 class="font-bold mb-1" style="font-size:0.9rem">{{ sj.job_title }}</h6>
+            <p class="text-muted text-sm mb-2">{{ sj.company }}</p>
+            {% if sj.skills %}
+            <div class="mb-2">
+              {% for s in sj.skills[:3] %}
+              <span class="skill-badge" style="font-size:0.65rem;padding:0.15rem 0.5rem">{{ s }}</span>
+              {% endfor %}
+            </div>
+            {% endif %}
+            <a href="/vacancies/{{ sj.id if sj.id else '#' }}" class="btn btn-outline btn-sm btn-block">Lihat</a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  async function saveJob(btn) {
+    let data;
+    try {
+      data = JSON.parse(btn.dataset.save);
+    } catch (e) {
+      return;
+    }
+    btn.disabled = true;
+    try {
+      const res = await fetch('/save_job', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const j = await res.json();
+      if (j.success) {
+        btn.title = 'Tersimpan';
+        const icon = btn.querySelector('i');
+        if (icon) icon.className = 'bi bi-bookmark-check-fill';
+      } else {
+        alert('Gagal menyimpan lowongan');
+      }
+    } catch (e) {
+      alert('Gagal menyimpan lowongan');
+    }
+    btn.disabled = false;
+  }
+  document.querySelectorAll('.save-job-btn').forEach(btn => {
+    btn.addEventListener('click', () => saveJob(btn));
+  });
+});
+</script>
+{% endblock %}

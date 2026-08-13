@@ -1,0 +1,19 @@
+[Unit]
+Description=JobMatch Flask app (gunicorn)
+After=network.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=www-data
+Group=www-data
+WorkingDirectory=/opt/jobmatch
+EnvironmentFile=/opt/jobmatch/.env
+# --preload: muat graph+embeddings sekali (hemat RAM).
+# workers cukup 2 (RAM 8GB). Naikkan threads kalau ramai.
+ExecStart=/opt/jobmatch/venv/bin/gunicorn --preload --workers 2 --threads 4 --timeout 300 --bind 127.0.0.1:8000 wsgi:app
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

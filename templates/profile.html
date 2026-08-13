@@ -1,0 +1,77 @@
+{% extends "base_app.html" %}
+{% block title %}Profil Saya - JobMatch{% endblock %}
+{% block page_content %}
+<div class="page-container" style="max-width:820px">
+  <h1 class="page-header__title mb-5"><i class="bi bi-person-badge me-2"></i>Profil Saya</h1>
+
+  <form method="POST" class="card p-6">
+    <div class="grid grid-cols-2 gap-4">
+      <div class="form-group">
+        <label class="form-label">Nama Lengkap</label>
+        <input type="text" name="full_name" class="form-input" value="{{ profile.full_name if profile else '' }}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">No. Telepon</label>
+        <input type="text" name="phone" class="form-input" value="{{ profile.phone if profile else '' }}">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Headline (gelar/jabatan singkat)</label>
+        <input type="text" name="headline" class="form-input" value="{{ profile.headline if profile else '' }}" placeholder="e.g. Frontend Developer dengan 3 tahun pengalaman">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Tahun Pengalaman</label>
+        <input type="number" name="experience_years" class="form-input" min="0" max="50" value="{{ profile.experience_years if profile else 0 }}">
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label class="form-label">Keahlian (pisahkan dengan koma)</label>
+        <input type="text" name="skills" class="form-input" id="skillsInput" value="{{ (profile.skills | join(', ')) if profile and profile.skills else '' }}" placeholder="python, sql, machine learning">
+        <div class="flex flex-wrap gap-1 mt-2" id="skillTags"></div>
+        <div class="form-help">Skill akan otomatis dipakai untuk mencocokkan lowongan.</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Pendidikan Terakhir</label>
+        <select name="education" class="form-select">
+          {% set edu_opts = ['', 'SMA/SMK', 'D3', 'S1/D4', 'S2', 'S3', 'Lainnya'] %}
+          {% for opt in edu_opts %}
+            <option value="{{ opt }}" {{ 'selected' if profile and profile.education == opt else '' }}>{{ opt or '-- Pilih --' }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Gaji Minimal (Rp)</label>
+        <input type="number" name="expected_salary_min" class="form-input" min="0" value="{{ '%d'|format(profile.expected_salary_min|int) if profile and profile.expected_salary_min else '' }}" placeholder="5_000_000">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Lokasi</label>
+        <input type="text" name="location" class="form-input" value="{{ profile.location if profile else '' }}" placeholder="Jakarta, Bandung, Remote">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Portfolio URL</label>
+        <input type="url" name="portfolio_url" class="form-input" value="{{ profile.portfolio_url if profile else '' }}" placeholder="https://github.com/username">
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label class="form-label">Tentang Saya</label>
+        <textarea name="about" class="form-textarea" rows="4" placeholder="Ceritakan tentang dirimu...">{{ profile.about if profile else '' }}</textarea>
+      </div>
+    </div>
+    <div class="mt-4">
+      <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Simpan Profil</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const skillsInput = document.getElementById('skillsInput');
+const skillTags = document.getElementById('skillTags');
+
+function renderSkillTags() {
+  const skills = skillsInput.value.split(',').map(s => s.trim()).filter(Boolean);
+  skillTags.innerHTML = skills.map(s => `<span class="skill-badge">${s}</span>`).join('');
+}
+
+skillsInput.addEventListener('input', renderSkillTags);
+renderSkillTags();
+</script>
+{% endblock %}

@@ -1,0 +1,83 @@
+{% extends "employer/base_employer.html" %}
+{% block title %}Setup Perusahaan{% endblock %}
+{% block page_title %}Setup Perusahaan{% endblock %}
+{% block breadcrumb %}Setup Perusahaan{% endblock %}
+
+{% block content %}
+<div class="card-new" style="max-width:640px;margin:20px auto;">
+  <div class="card-new-body">
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="width:72px;height:72px;border-radius:16px;background:linear-gradient(135deg,#14B8A6,#0D9488);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:2rem;color:white;box-shadow:0 4px 12px rgba(20,184,166,0.3);">
+        <i class="bi bi-building"></i>
+      </div>
+      <h2 style="font-size:1.5rem;font-weight:700;color:#0f172a;margin-bottom:4px;">Lengkapi Profil Perusahaan</h2>
+      <p style="color:#64748b;font-size:0.9rem;margin:0;">Sebelum menggunakan dashboard, lengkapi data perusahaan Anda terlebih dahulu.</p>
+    </div>
+
+    <form method="POST" action="/employer/company/setup">
+      <div class="form-group">
+        <label class="form-label">Nama Perusahaan <span style="color:#ef4444;">*</span></label>
+        <input type="text" class="form-input" name="name" required placeholder="Cth: PT AINO Indonesia">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="form-group">
+          <label class="form-label">Industri</label>
+          <select class="form-select" name="industry">
+            <option value="">Pilih industri</option>
+            <option>Teknologi / IT</option>
+            <option>Keuangan / Perbankan</option>
+            <option>Kesehatan / Farmasi</option>
+            <option>Pendidikan</option>
+            <option>Manufaktur</option>
+            <option>Ritel / E-commerce</option>
+            <option>Konsultan</option>
+            <option>Media / Hiburan</option>
+            <option>Telekomunikasi</option>
+            <option>Energi / Sumber Daya</option>
+            <option>Transportasi / Logistik</option>
+            <option>Lainnya</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ukuran Perusahaan</label>
+          <select class="form-select" name="size">
+            <option value="">Pilih ukuran</option>
+            <option>1-10 karyawan</option>
+            <option>11-50 karyawan</option>
+            <option>51-200 karyawan</option>
+            <option>201-1000 karyawan</option>
+            <option>1000+ karyawan</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Deskripsi Perusahaan</label>
+        <textarea class="form-textarea" name="description" rows="3" placeholder="Deskripsi singkat tentang perusahaan..."></textarea>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="form-group">
+          <label class="form-label">Lokasi</label>
+          <input type="text" class="form-input" name="location" placeholder="Cth: Jakarta, Indonesia">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Website</label>
+          <input type="url" class="form-input" name="website" placeholder="Cth: https://aino.co.id">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="form-group">
+          <label class="form-label">Nama HR (opsional)</label>
+          <input type="text" class="form-input" name="hr_name" placeholder="Nama kontak HR">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nomor Telepon (opsional)</label>
+          <input type="text" class="form-input" name="phone" placeholder="Cth: 021-12345678">
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block btn-lg" style="background:linear-gradient(135deg,#14B8A6,#0D9488);border:none;box-shadow:0 2px 8px rgba(20,184,166,0.25);">
+        <i class="bi bi-check-lg mr-2"></i>Simpan & Lanjut ke Dashboard
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}

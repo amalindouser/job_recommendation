@@ -1,0 +1,70 @@
+{% extends "employer/base_employer.html" %}
+{% block title %}Edit Lowongan{% endblock %}
+{% block page_title %}Edit Lowongan{% endblock %}
+{% block breadcrumb %}
+  <a href="/employer/vacancies">Lowongan</a>
+  <span class="separator">/</span>
+  <a href="/employer/vacancies/{{ vacancy.id }}">{{ vacancy.job_title[:20] }}...</a>
+  <span class="separator">/</span>
+  <span>Edit</span>
+{% endblock %}
+
+{% block content %}
+<div class="card-new" style="max-width:720px;margin:0 auto;">
+  <div class="card-new-body">
+    <h3 style="font-size:1.15rem;font-weight:700;color:#0f172a;margin-bottom:4px;">
+      <i class="bi bi-pencil mr-2" style="color:#14B8A6;"></i>Edit Lowongan
+    </h3>
+    <p style="color:#64748b;font-size:0.85rem;margin-bottom:20px;">Perbarui detail lowongan pekerjaan.</p>
+
+    <form method="POST">
+      <div class="form-group">
+        <label class="form-label">Judul Pekerjaan <span style="color:#ef4444;">*</span></label>
+        <input type="text" class="form-input" name="job_title" value="{{ vacancy.job_title }}" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Perusahaan</label>
+        <input type="text" class="form-input" name="company" value="{{ vacancy.company }}" readonly>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Deskripsi</label>
+        <textarea class="form-textarea" name="description" rows="4">{{ vacancy.description or '' }}</textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Keahlian (pisahkan dengan koma)</label>
+        <input type="text" class="form-input" name="skills" value="{{ vacancy.skills | join(', ') }}">
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+        <div class="form-group">
+          <label class="form-label">Gaji Min</label>
+          <input type="text" class="form-input" name="salary_min" value="{{ vacancy.salary_min or '' }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Gaji Max</label>
+          <input type="text" class="form-input" name="salary_max" value="{{ vacancy.salary_max or '' }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Level</label>
+          <input type="text" class="form-input" name="job_level" value="{{ vacancy.job_level or '' }}">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+        <div class="form-group">
+          <label class="form-label">Tipe</label>
+          <input type="text" class="form-input" name="job_type" value="{{ vacancy.job_type or '' }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Lokasi</label>
+          <input type="text" class="form-input" name="location" value="{{ vacancy.location or '' }}">
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;">
+        <button type="submit" class="btn btn-primary" style="background:linear-gradient(135deg,#14B8A6,#0D9488);border:none;box-shadow:0 2px 8px rgba(20,184,166,0.25);">
+          <i class="bi bi-check-lg mr-2"></i>Simpan
+        </button>
+        <a href="/employer/vacancies/{{ vacancy.id }}" class="btn btn-outline">Batal</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

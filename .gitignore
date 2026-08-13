@@ -21,6 +21,17 @@ build/
 *.sqlite3
 database/users.db
 
+# Runtime data, caches & secrets dari DB (jangan di-commit)
+*.pkl
+*.dump
+*.docx
+database/*.json
+data/
+data_salin/
+postings_final.csv
+uploads/
+deploy/*.dump
+
 # IDE
 .vscode/
 .idea/

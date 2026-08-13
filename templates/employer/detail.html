@@ -1,0 +1,471 @@
+{% extends "employer/base_employer.html" %}
+{% block title %}{{ vacancy.job_title }} — Detail{% endblock %}
+{% block page_title %}{{ vacancy.job_title }}{% endblock %}
+{% block breadcrumb %}
+  <a href="/employer/vacancies">Lowongan</a>
+  <span class="separator">/</span>
+  <span>{{ vacancy.job_title[:30] }}{% if vacancy.job_title|length > 30 %}...{% endif %}</span>
+{% endblock %}
+
+{% block head %}
+<style>
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes pulse { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.graph-wrapper {
+  position: relative;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  height: 560px;
+}
+.graph-wrapper::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 25% 25%, rgba(20,184,166,0.03) 0%, transparent 50%),
+    radial-gradient(circle at 75% 75%, rgba(99,102,241,0.03) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+.graph-grid-bg {
+  position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(226,232,240,0.4) 1px, transparent 1px), linear-gradient(90deg, rgba(226,232,240,0.4) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none; z-index: 0;
+}
+.graph-overlay {
+  position: absolute; z-index: 10;
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  background: rgba(255,255,255,0.85);
+  border: 1px solid rgba(226,232,240,0.6);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+  transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+}
+.graph-search { top: 16px; left: 16px; border-radius: 10px; padding: 0.4rem 0.4rem 0.4rem 0.8rem; display: flex; align-items: center; gap: 6px; min-width: 220px; }
+.graph-search input { border: none; outline: none; background: transparent; font-size: 0.85rem; color: #0f172a; width: 140px; font-family: 'Inter', sans-serif; }
+.graph-search input::placeholder { color: #94a3b8; }
+.graph-legend { top: 16px; right: 16px; border-radius: 10px; padding: 0.75rem 1rem; min-width: 150px; }
+.graph-legend-item { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: 0.75rem; font-weight: 500; color: #475569; }
+.graph-legend-dot { width: 10px; height: 10px; border-radius: 4px; flex-shrink: 0; }
+.graph-legend-divider { height: 1px; background: #e2e8f0; margin: 6px 0; }
+.graph-toolbar { bottom: 16px; left: 50%; transform: translateX(-50%); border-radius: 12px; padding: 0.35rem; display: flex; gap: 2px; }
+.graph-toolbar-btn { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 8px; background: transparent; color: #64748b; font-size: 0.9rem; cursor: pointer; transition: all 0.2s ease; }
+.graph-toolbar-btn:hover { background: #f1f5f9; color: #14B8A6; }
+.graph-toolbar-divider { width: 1px; height: 24px; background: #e2e8f0; margin: auto 4px; }
+.graph-info-panel { bottom: 72px; right: 16px; border-radius: 12px; padding: 1rem; max-width: 290px; display: none; border: 1.5px solid #14B8A6; animation: fadeUp 0.25s ease; }
+.graph-info-panel.show { display: block; }
+.graph-loading { position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,255,255,0.7); backdrop-filter: blur(4px); transition: opacity 0.5s ease; }
+.graph-loading.hidden { opacity: 0; pointer-events: none; }
+.graph-loading-spinner { width: 48px; height: 48px; border-radius: 50%; border: 3px solid #e2e8f0; border-top-color: #14B8A6; animation: spin 0.8s linear infinite; }
+.graph-node-count { position: absolute; bottom: 72px; left: 16px; z-index: 10; font-size: 0.7rem; color: #94a3b8; font-weight: 500; background: rgba(255,255,255,0.7); backdrop-filter: blur(8px); padding: 4px 10px; border-radius: 8px; border: 1px solid #e2e8f0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <span class="badge badge-primary" style="background:rgba(20,184,166,0.1);color:#14B8A6;border-color:#14B8A6;padding:6px 14px;font-size:0.8rem;">
+      {{ vacancy.job_type or '-' }}
+    </span>
+    {% if vacancy.historical %}
+      <span class="badge badge-neutral">Historis</span>
+    {% endif %}
+  </div>
+  {% if not vacancy.historical %}
+  <div style="display:flex;gap:8px;">
+    <a href="/employer/vacancies/{{ vacancy.id }}/edit" class="btn btn-outline btn-sm">
+      <i class="bi bi-pencil mr-2"></i> Edit
+    </a>
+    <form method="POST" action="/employer/vacancies/{{ vacancy.id }}/delete" style="display:inline;" onsubmit="return confirm('Hapus lowongan ini?')">
+      <button type="submit" class="btn btn-danger btn-sm">
+        <i class="bi bi-trash mr-2"></i> Hapus
+      </button>
+    </form>
+  </div>
+  {% endif %}
+</div>
+
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:20px;">
+  <div class="card-new" style="grid-column:span 2;">
+    <div class="card-new-body">
+      <h2 style="font-size:1.35rem;font-weight:700;color:#0f172a;margin-bottom:4px;">
+        {{ vacancy.job_title }}
+      </h2>
+      <p style="color:#475569;font-size:0.9rem;margin-bottom:12px;">
+        <span style="font-weight:600;color:#14B8A6;">{{ vacancy.company }}</span>
+        {% if vacancy.location %}
+          <span class="ml-3"><i class="bi bi-geo-alt mr-2"></i>{{ vacancy.location }}</span>
+        {% endif %}
+        {% if vacancy.job_type %}
+          <span class="ml-3"><i class="bi bi-clock mr-2"></i>{{ vacancy.job_type }}</span>
+        {% endif %}
+        {% if vacancy.job_level %}
+          <span class="ml-3"><i class="bi bi-bar-chart mr-2"></i>{{ vacancy.job_level }}</span>
+        {% endif %}
+        {% if vacancy.salary_min or vacancy.salary_max %}
+          <span class="ml-3"><i class="bi bi-cash mr-2"></i>
+            {% if vacancy.salary_min and vacancy.salary_max %}
+              Rp {{ "{:,.0f}".format(vacancy.salary_min|int) }} - Rp {{ "{:,.0f}".format(vacancy.salary_max|int) }}
+            {% elif vacancy.salary_min %}
+              &ge; Rp {{ "{:,.0f}".format(vacancy.salary_min|int) }}
+            {% elif vacancy.salary_max %}
+              &le; Rp {{ "{:,.0f}".format(vacancy.salary_max|int) }}
+            {% endif %}
+          </span>
+        {% endif %}
+      </p>
+      {% if vacancy.description %}
+        <h6 class="font-semibold mb-2" style="color:#0f172a;">Deskripsi</h6>
+        <p style="color:#475569;white-space:pre-line;">{{ vacancy.description }}</p>
+      {% endif %}
+      {% if vacancy.skills %}
+        <h6 class="font-semibold mb-2" style="color:#0f172a;">Keahlian yang Dibutuhkan</h6>
+        <div class="flex flex-wrap gap-1 mb-2">
+          {% for s in vacancy.skills %}
+            <span class="skill-badge skill-badge--primary" style="background:rgba(20,184,166,0.1);color:#0D9488;border-color:#14B8A6;">{{ s }}</span>
+          {% endfor %}
+        </div>
+      {% endif %}
+      <small style="color:#94a3b8;display:block;margin-top:12px;">
+        {% if vacancy.historical %}Pertama terlihat:{% else %}Dibuat:{% endif %}
+        {{ vacancy.created_at[:19] if vacancy.created_at else '-' }}
+      </small>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;grid-column:span 2;gap:12px;">
+    <div style="background:white;border:1px solid #e2e8f0;border-radius:12px;padding:16px;text-align:center;">
+      <small style="font-size:0.7rem;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;">Derajat</small>
+      <div style="font-size:1.5rem;font-weight:700;color:#0f172a;">{{ metrics.degree or 0 }}</div>
+    </div>
+    <div style="background:white;border:1px solid #e2e8f0;border-radius:12px;padding:16px;text-align:center;">
+      <small style="font-size:0.7rem;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;">PageRank</small>
+      <div style="font-size:1.2rem;font-weight:700;color:#0f172a;">{{ metrics.pagerank or 0 }}</div>
+    </div>
+    <div style="background:white;border:1px solid #e2e8f0;border-radius:12px;padding:16px;text-align:center;">
+      <small style="font-size:0.7rem;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;">Node Graph</small>
+      <div style="font-size:1.2rem;font-weight:700;color:#0f172a;">{{ metrics.total_nodes }}</div>
+    </div>
+    <div style="background:white;border:1px solid #e2e8f0;border-radius:12px;padding:16px;text-align:center;">
+      <small style="font-size:0.7rem;font-weight:600;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;">Edge Graph</small>
+      <div style="font-size:1.2rem;font-weight:700;color:#0f172a;">{{ metrics.total_edges }}</div>
+    </div>
+  </div>
+</div>
+
+{% if not vacancy.historical %}
+<div style="margin-bottom:20px;">
+  <div class="graph-wrapper" id="graphWrapper">
+    <div class="graph-grid-bg"></div>
+    <div class="graph-loading" id="graphLoading">
+      <div class="graph-loading-spinner"></div>
+      <div class="graph-loading-text" style="margin-top:12px;font-size:0.85rem;font-weight:500;color:#94a3b8;animation:pulse 1.5s ease infinite;">Memuat grafik pengetahuan...</div>
+    </div>
+    <div class="graph-overlay graph-search" id="graphSearch">
+      <i class="bi bi-search" style="color:#94a3b8;font-size:0.85rem;"></i>
+      <input type="text" id="nodeSearch" placeholder="Cari node...">
+      <button class="graph-toolbar-btn" id="searchBtn" title="Cari" style="width:28px;height:28px;"><i class="bi bi-arrow-right"></i></button>
+    </div>
+    <div class="graph-overlay graph-legend" id="graphLegend">
+      <div class="graph-legend-item"><span class="graph-legend-dot" style="background:#14B8A6;"></span> Perusahaan</div>
+      <div class="graph-legend-item"><span class="graph-legend-dot" style="background:#6366f1;"></span> Pekerjaan</div>
+      <div class="graph-legend-item"><span class="graph-legend-dot" style="background:#f59e0b;"></span> Keahlian</div>
+      <div class="graph-legend-item"><span class="graph-legend-dot" style="background:#8b5cf6;"></span> Level</div>
+      <div class="graph-legend-item"><span class="graph-legend-dot" style="background:#ef4444;"></span> Lokasi</div>
+      <div class="graph-legend-item"><span class="graph-legend-dot" style="background:#ec4899;"></span> Tipe</div>
+      <div class="graph-legend-item"><span class="graph-legend-dot" style="background:#8B5CF6;"></span> Pelamar</div>
+      <div class="graph-legend-divider"></div>
+      <div class="graph-legend-item"><span style="width:18px;height:3px;border-radius:2px;background:linear-gradient(90deg,#8B5CF6,#A78BFA);flex-shrink:0;"></span><span style="font-size:0.7rem;">Skill cocok</span></div>
+    </div>
+    <div id="cy" style="width:100%;height:100%;position:relative;z-index:1;"></div>
+    <div class="graph-node-count" id="nodeCount"></div>
+    <div class="graph-overlay graph-toolbar" id="graphToolbar">
+      <button class="graph-toolbar-btn" id="zoomIn" title="Perbesar"><i class="bi bi-zoom-in"></i></button>
+      <button class="graph-toolbar-btn" id="zoomOut" title="Perkecil"><i class="bi bi-zoom-out"></i></button>
+      <div class="graph-toolbar-divider"></div>
+      <button class="graph-toolbar-btn" id="fitGraph" title="Sesuaikan"><i class="bi bi-arrows-fullscreen"></i></button>
+      <button class="graph-toolbar-btn" id="resetGraph" title="Reset"><i class="bi bi-arrow-counterclockwise"></i></button>
+      <div class="graph-toolbar-divider"></div>
+      <button class="graph-toolbar-btn" id="layoutBtn" title="Atur layout"><i class="bi bi-grid-3x3-gap"></i></button>
+      <button class="graph-toolbar-btn" id="toggleLabels" title="Label"><i class="bi bi-fonts"></i></button>
+    </div>
+    <div class="graph-overlay graph-info-panel" id="nodeInfo">
+      <button id="closeInfo" style="position:absolute;top:6px;right:8px;border:none;background:none;color:#94a3b8;cursor:pointer;font-size:1rem;line-height:1;padding:2px;">&times;</button>
+      <div id="nodeInfoContent"></div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+  <div class="card-new">
+    <div class="card-new-header" style="display:flex;align-items:center;justify-content:space-between;">
+      <span><i class="bi bi-people mr-2" style="color:#14B8A6;"></i>Pelamar</span>
+      {% if not vacancy.historical %}
+      <a class="btn btn-primary btn-sm" href="/employer/vacancies/{{ vacancy.id }}/applicants" style="background:linear-gradient(135deg,#14B8A6,#0D9488);border:none;">
+        <i class="bi bi-eye mr-2"></i> Lihat Pelamar
+      </a>
+      {% endif %}
+    </div>
+    <div class="card-new-body">
+      <p style="color:#64748b;font-size:0.85rem;margin:0;">Lihat kandidat yang melamar lowongan ini.</p>
+    </div>
+  </div>
+
+  <div class="card-new">
+    <div class="card-new-header">
+      <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+        <span><i class="bi bi-graph-up-arrow mr-2" style="color:#14B8A6;"></i>Cocok dengan Pelamar</span>
+        <span class="badge badge-primary" id="matchCount" style="background:rgba(20,184,166,0.1);color:#14B8A6;border-color:#14B8A6;">0</span>
+      </div>
+    </div>
+    <div class="card-new-body" id="matchingResults">
+      <div style="text-align:center;color:#94a3b8;padding:16px;">
+        <i class="bi bi-hourglass-split" style="font-size:1.5rem;display:block;margin-bottom:0.5rem;"></i>
+        <p>Mencari pelamar yang cocok...</p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/cytoscape@3.28.1/dist/cytoscape.min.js"></script>
+<script>
+const graphData = {{ graph_data|tojson|safe }};
+const vacancyId = '{{ vacancy.id }}';
+let cy = null;
+let labelsVisible = true;
+
+const NODE_COLORS = {
+  company: { bg: '#14B8A6', border: '#0D9488', text: '#fff' },
+  job: { bg: '#6366f1', border: '#4f46e5', text: '#fff' },
+  skill: { bg: '#f59e0b', border: '#d97706', text: '#fff' },
+  level: { bg: '#8b5cf6', border: '#7c3aed', text: '#fff' },
+  location: { bg: '#ef4444', border: '#dc2626', text: '#fff' },
+  jobtype: { bg: '#ec4899', border: '#db2777', text: '#fff' },
+  applicant: { bg: '#8B5CF6', border: '#7C3AED', text: '#fff' },
+};
+const NODE_SHAPES = {
+  company: 'rectangle', job: 'round-rectangle', skill: 'ellipse',
+  level: 'diamond', location: 'hexagon', jobtype: 'triangle', applicant: 'round-rectangle',
+};
+const NODE_SIZES = {
+  company: { w: 80, h: 40 }, job: { w: 100, h: 40 }, skill: { w: 60, h: 40 },
+  level: { w: 50, h: 50 }, location: { w: 70, h: 50 }, jobtype: { w: 50, h: 50 }, applicant: { w: 90, h: 40 },
+};
+
+function buildNodeStyle(type) {
+  const c = NODE_COLORS[type] || { bg: '#64748b', border: '#475569', text: '#fff' };
+  const s = NODE_SHAPES[type] || 'ellipse';
+  const sz = NODE_SIZES[type] || { w: 60, h: 40 };
+  return {
+    'background-color': c.bg,
+    'background-image': type === 'skill' ? 'none' : `linear-gradient(180deg, ${c.bg} 0%, ${c.border} 100%)`,
+    'border-width': 0, 'border-color': c.border, shape: s, width: sz.w, height: sz.h,
+    color: c.text, 'font-size': type === 'skill' ? '10px' : '9px', 'font-weight': '600',
+    'text-valign': 'center', 'text-halign': 'center', 'text-wrap': 'ellipsis', 'text-max-width': sz.w - 8,
+    'shadow-blur': 0, 'shadow-color': c.bg, 'shadow-opacity': 0.3, 'shadow-offset-x': 0, 'shadow-offset-y': 2,
+    'transition-property': 'shadow-blur, shadow-opacity, border-width', 'transition-duration': '0.2s',
+  };
+}
+
+const nodeStyles = Object.keys(NODE_COLORS).map(type => ({
+  selector: `node[type="${type}"]`, css: buildNodeStyle(type)
+}));
+
+function showInfo(html) { const panel = document.getElementById('nodeInfo'); document.getElementById('nodeInfoContent').innerHTML = html; panel.classList.add('show'); }
+function hideInfo() { document.getElementById('nodeInfo').classList.remove('show'); }
+
+function updateNodeCount() {
+  const el = document.getElementById('nodeCount');
+  if (!cy || !el) return;
+  el.textContent = `${cy.nodes().length} node · ${cy.edges().length} relasi`;
+}
+
+function initGraph() {
+  if (!graphData || !graphData.nodes || graphData.nodes.length === 0) {
+    document.getElementById('graphLoading')?.classList.add('hidden'); return;
+  }
+  const elementsList = graphData.nodes.concat(graphData.edges || []);
+  cy = cytoscape({
+    container: document.getElementById('cy'), elements: elementsList,
+    style: [
+      { selector: 'node', css: {
+        label: 'data(label)', 'font-family': "'Inter', system-ui, sans-serif",
+        'text-outline-width': 0, 'text-background-color': 'rgba(0,0,0,0.4)',
+        'text-background-opacity': 0, 'text-background-padding': '3px',
+        'text-background-shape': 'round-rectangle', 'min-zoomed-font-size': 6,
+      }},
+      ...nodeStyles,
+      { selector: 'node:selected', css: {
+        'border-width': 3, 'border-color': '#14B8A6', 'border-opacity': 1,
+        'shadow-blur': 16, 'shadow-opacity': 0.35, 'shadow-color': '#14B8A6',
+        'shadow-offset-x': 0, 'shadow-offset-y': 0,
+      }},
+      { selector: 'node.highlighted', css: {
+        'shadow-blur': 20, 'shadow-opacity': 0.4, 'shadow-color': '#14B8A6',
+        'shadow-offset-x': 0, 'shadow-offset-y': 0, 'border-width': 2,
+        'border-color': '#14B8A6', 'border-opacity': 0.8,
+      }},
+      { selector: 'node.faded', css: { opacity: 0.2, 'transition-property': 'opacity', 'transition-duration': '0.3s' }},
+      { selector: 'edge', css: {
+        'line-color': '#cbd5e1', 'target-arrow-color': '#cbd5e1', 'target-arrow-shape': 'triangle-backcurve',
+        'curve-style': 'unbundled-bezier', width: 1.5, 'arrow-scale': 0.7, 'line-style': 'solid',
+        'font-size': '7px', color: '#94a3b8', 'text-background-color': '#ffffff',
+        'text-background-opacity': 0.85, 'text-background-padding': '2px', 'font-weight': '500',
+        'font-family': "'Inter', sans-serif", 'edge-distances': 'node-position', 'control-point-step-size': 40,
+      }},
+      { selector: 'edge[label="MATCH"]', css: {
+        'line-color': '#8B5CF6', 'target-arrow-color': '#8B5CF6', width: 2.5,
+        'line-style': 'dashed', 'line-dash-pattern': [6, 4], 'arrow-scale': 0.9,
+        color: '#8B5CF6', 'font-weight': '700', 'font-size': '8px',
+        'text-background-color': 'rgba(255,255,255,0.9)', 'text-background-padding': '3px',
+        'text-background-shape': 'round-rectangle',
+      }},
+      { selector: 'edge.highlighted', css: {
+        width: 3, 'line-color': '#14B8A6', 'target-arrow-color': '#14B8A6',
+        'line-style': 'solid', 'transition-property': 'width, line-color', 'transition-duration': '0.2s',
+      }},
+      { selector: 'edge.faded', css: { opacity: 0.08, 'transition-property': 'opacity', 'transition-duration': '0.3s' }},
+      { selector: 'edge[label="MATCH"].highlighted', css: {
+        width: 3.5, 'line-color': '#7C3AED', 'target-arrow-color': '#7C3AED',
+      }},
+    ],
+    layout: { name: 'cose', animate: true, animationDuration: 600, animationEasing: 'ease-out',
+      nodeRepulsion: 10000, nodeOverlap: 10, idealEdgeLength: 130, edgeElasticity: 100,
+      nestingFactor: 0.1, gravity: 0.25, numIter: 1000, initialTemp: 1000, coolingFactor: 0.99,
+      minTemp: 0.5, refresh: 20, fit: true, padding: 50,
+    },
+    minZoom: 0.25, maxZoom: 3.5, wheelSensitivity: 0.25, motionBlur: true, motionBlurOpacity: 0.2,
+    pixelRatio: window.devicePixelRatio || 1,
+  });
+
+  cy.on('layoutstop', () => { document.getElementById('graphLoading')?.classList.add('hidden'); updateNodeCount(); });
+  cy.on('add remove', updateNodeCount);
+
+  cy.on('tap', 'node', async function(evt) {
+    const node = evt.target;
+    const nodeType = node.data('type');
+    const nodeLabel = node.data('label');
+    const color = NODE_COLORS[nodeType] || { bg: '#14B8A6' };
+    if (nodeType === 'skill' && nodeLabel) {
+      showInfo(`<div class="text-center py-3" style="color:#94a3b8;"><i class="bi bi-hourglass-split" style="font-size:1.2rem;"></i></div>`);
+      try {
+        const res = await fetch('/employer/api/skill-detail', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ skill: nodeLabel }) });
+        const data = await res.json();
+        showInfo(`
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+            <span style="width:36px;height:36px;border-radius:10px;background:${color.bg};display:flex;align-items:center;justify-content:center;color:white;font-size:0.9rem;flex-shrink:0;"><i class="bi bi-star-fill"></i></span>
+            <div><div style="font-weight:700;font-size:0.95rem;color:#0f172a;">${data.skill}</div><div style="font-size:0.7rem;color:#94a3b8;font-weight:500;">Keahlian</div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+            <div style="background:#f8fafc;border-radius:8px;padding:8px;text-align:center;"><div style="font-size:1.1rem;font-weight:700;color:${color.bg};">${data.frequency}</div><div style="font-size:0.65rem;color:#94a3b8;">Pekerjaan</div></div>
+            <div style="background:#f8fafc;border-radius:8px;padding:8px;text-align:center;"><div style="font-size:1.1rem;font-weight:700;color:${color.bg};">${data.candidate_estimate}</div><div style="font-size:0.65rem;color:#94a3b8;">Kandidat</div></div>
+          </div>
+          ${(data.related_jobs || []).length > 0 ? `<div style="margin-bottom:6px;"><div style="font-size:0.7rem;font-weight:600;color:#475569;margin-bottom:4px;">Pekerjaan terkait</div><div style="max-height:80px;overflow-y:auto;">${data.related_jobs.slice(0,5).map(j => `<span style="font-size:0.7rem;color:#64748b;padding:2px 0;border-bottom:1px solid #f1f5f9;display:block;">${j.title}${j.company ? ' · ' + j.company : ''}</span>`).join('')}</div></div>` : ''}
+          ${(data.related_companies || []).length > 0 ? `<div><div style="font-size:0.7rem;font-weight:600;color:#475569;margin-bottom:4px;">Perusahaan</div><div style="display:flex;flex-wrap:wrap;gap:4px;">${data.related_companies.slice(0,4).map(c => `<span style="font-size:0.65rem;background:#f8fafc;padding:2px 8px;border-radius:4px;color:#475569;">${c.name}</span>`).join('')}</div></div>` : ''}
+        `);
+      } catch(e) { showInfo(`<div style="font-weight:600;font-size:0.9rem;">${nodeLabel}</div><div style="font-size:0.75rem;color:#94a3b8;margin-top:4px;">Gagal memuat detail</div>`); }
+    } else {
+      const degree = node.connectedEdges().length;
+      const neighborTypes = {};
+      node.neighborhood().nodes().forEach(n => { const t = n.data('type'); neighborTypes[t] = (neighborTypes[t] || 0) + 1; });
+      const typeLabels = { company: 'Perusahaan', job: 'Pekerjaan', skill: 'Keahlian', level: 'Level', location: 'Lokasi', jobtype: 'Tipe', applicant: 'Pelamar' };
+      showInfo(`
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <span style="width:36px;height:36px;border-radius:10px;background:${color.bg};display:flex;align-items:center;justify-content:center;color:white;font-size:0.9rem;flex-shrink:0;"><i class="bi bi-diagram-2-fill"></i></span>
+          <div><div style="font-weight:700;font-size:0.95rem;color:#0f172a;">${nodeLabel}</div><div style="font-size:0.7rem;color:#94a3b8;font-weight:500;">${typeLabels[nodeType] || nodeType}</div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+          <div style="background:#f8fafc;border-radius:8px;padding:8px;text-align:center;"><div style="font-size:1.1rem;font-weight:700;color:${color.bg};">${degree}</div><div style="font-size:0.65rem;color:#94a3b8;">Koneksi</div></div>
+          <div style="background:#f8fafc;border-radius:8px;padding:8px;text-align:center;"><div style="font-size:0.7rem;font-weight:600;color:#475569;">${node.id().substring(0,18)}${node.id().length > 18 ? '...' : ''}</div><div style="font-size:0.65rem;color:#94a3b8;">ID Node</div></div>
+        </div>
+        ${Object.keys(neighborTypes).length > 0 ? `<div><div style="font-size:0.7rem;font-weight:600;color:#475569;margin-bottom:4px;">Tetangga</div><div style="display:flex;flex-wrap:wrap;gap:4px;">${Object.entries(neighborTypes).map(([t, cnt]) => `<span style="font-size:0.65rem;background:${NODE_COLORS[t]?.bg || '#64748b'}15;color:${NODE_COLORS[t]?.bg || '#64748b'};padding:2px 8px;border-radius:4px;font-weight:500;">${cnt} ${typeLabels[t] || t}</span>`).join('')}</div></div>` : ''}
+      `);
+    }
+  });
+  cy.on('tap', function(evt) { if (evt.target === cy) hideInfo(); });
+
+  let highlightTimer = null;
+  cy.on('mouseover', 'node', function(evt) {
+    clearTimeout(highlightTimer); const node = evt.target;
+    cy.elements().addClass('faded'); node.removeClass('faded');
+    node.neighborhood().removeClass('faded'); node.addClass('highlighted'); node.neighborhood().addClass('highlighted');
+  });
+  cy.on('mouseout', 'node', function() { highlightTimer = setTimeout(() => { cy.elements().removeClass('faded'); cy.elements().removeClass('highlighted'); }, 100); });
+  cy.on('mouseover', 'edge', function(evt) {
+    clearTimeout(highlightTimer); const edge = evt.target;
+    cy.elements().addClass('faded'); edge.removeClass('faded');
+    edge.addClass('highlighted'); edge.connectedNodes().removeClass('faded'); edge.connectedNodes().addClass('highlighted');
+  });
+  cy.on('mouseout', 'edge', function() { highlightTimer = setTimeout(() => { cy.elements().removeClass('faded'); cy.elements().removeClass('highlighted'); }, 100); });
+  cy.on('zoom', () => { const hide = cy.zoom() < 0.5; if (hide === labelsVisible) { labelsVisible = !hide; cy.nodes().style('label', hide ? '' : 'data(label)'); } });
+
+  setupControls();
+}
+
+function setupControls() {
+  if (!cy) return;
+  document.getElementById('zoomIn').onclick = () => { cy.animate({ zoom: cy.zoom() * 1.3, center: { x: cy.width()/2, y: cy.height()/2 } }, { duration: 200 }); };
+  document.getElementById('zoomOut').onclick = () => { cy.animate({ zoom: cy.zoom() * 0.7, center: { x: cy.width()/2, y: cy.height()/2 } }, { duration: 200 }); };
+  document.getElementById('fitGraph').onclick = () => { cy.animate({ fit: { padding: 50 } }, { duration: 300 }); };
+  document.getElementById('resetGraph').onclick = () => { cy.animate({ zoom: 1, pan: { x: 0, y: 0 } }, { duration: 300 }); };
+  document.getElementById('layoutBtn').onclick = () => {
+    document.getElementById('graphLoading')?.classList.remove('hidden');
+    cy.layout({ name: 'cose', animate: true, animationDuration: 600, nodeRepulsion: 10000, idealEdgeLength: 130, gravity: 0.25, numIter: 1000, fit: true, padding: 50 }).run();
+  };
+  let toggleLabelFlag = true;
+  document.getElementById('toggleLabels').onclick = () => {
+    toggleLabelFlag = !toggleLabelFlag;
+    cy.nodes().style('label', toggleLabelFlag ? 'data(label)' : '');
+    document.getElementById('toggleLabels').innerHTML = toggleLabelFlag ? '<i class="bi bi-fonts"></i>' : '<i class="bi bi-fonts" style="opacity:0.4;"></i>';
+  };
+  document.getElementById('searchBtn').onclick = () => {
+    const query = document.getElementById('nodeSearch').value.trim().toLowerCase();
+    cy.elements().removeClass('faded'); cy.nodes().removeClass('highlighted');
+    if (!query) return;
+    const match = cy.nodes().filter(n => (n.data('label') || '').toLowerCase().includes(query));
+    if (match.length > 0) { match.addClass('highlighted'); cy.animate({ fit: { eles: match, padding: 60 } }, { duration: 300 }); }
+  };
+  document.getElementById('nodeSearch').addEventListener('keyup', (e) => { if (e.key === 'Enter') document.getElementById('searchBtn').click(); });
+  document.getElementById('closeInfo').onclick = hideInfo;
+}
+
+document.addEventListener('DOMContentLoaded', () => { initGraph(); loadMatching(); });
+
+async function loadMatching() {
+  const area = document.getElementById('matchingResults');
+  const countBadge = document.getElementById('matchCount');
+  if (!area) return;
+  try {
+    const res = await fetch(`/employer/api/jobs/${vacancyId}/matching`);
+    const data = await res.json();
+    const results = data.results || [];
+    if (countBadge) countBadge.textContent = results.length;
+    if (results.length === 0) { area.innerHTML = '<div class="empty-state" style="padding:24px;"><i class="bi bi-inbox empty-state__icon" style="font-size:2rem;"></i><p style="color:#94a3b8;">Belum ada pelamar yang cocok.</p></div>'; return; }
+    const getColor = (s) => s >= 70 ? '#14B8A6' : s >= 40 ? '#f59e0b' : '#ef4444';
+    area.innerHTML = results.slice(0, 10).map((c, i) => {
+      const score = c.match_percent || 0;
+      return `<div class="card card-hover mb-2" style="border:1px solid #f1f5f9;border-radius:10px;">
+        <div class="card-body" style="padding:12px 16px;">
+          <div class="flex items-start justify-between">
+            <div><h6 class="font-semibold mb-1" style="font-size:0.85rem;">${c.full_name}</h6>
+              <small style="color:#94a3b8;">${c.experience ? '<span class="mr-2"><i class="bi bi-briefcase mr-2"></i>' + c.experience + ' th</span>' : ''}${c.education ? '<span><i class="bi bi-mortarboard mr-2"></i>' + c.education + '</span>' : ''}</small>
+            </div>
+            <div style="text-align:right;"><span style="font-size:1.1rem;font-weight:700;color:${getColor(score)};">${score}%</span></div>
+          </div>
+          <div style="height:6px;border-radius:3px;background:#e2e8f0;overflow:hidden;margin-top:6px;"><div style="height:100%;border-radius:3px;width:${score}%;background:${getColor(score)};transition:width 0.5s ease;"></div></div>
+          ${c.skills && c.skills.length > 0 ? `<div class="flex flex-wrap gap-1 mt-2">${c.skills.slice(0,5).map(s => `<span class="skill-badge" style="font-size:0.65rem;">${s}</span>`).join('')}${c.skills.length > 5 ? `<small style="color:#94a3b8;">+${c.skills.length-5}</small>` : ''}</div>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  } catch (e) { area.innerHTML = `<div class="alert alert-danger" style="margin:0;">Gagal: ${e.message}</div>`; }
+}
+</script>
+{% endblock %}

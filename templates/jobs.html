@@ -1,0 +1,425 @@
+{% extends "base_app.html" %}
+{% block title %}Lowongan Pekerjaan - JobMatch{% endblock %}
+{% block page_content %}
+<div class="page-container">
+
+  <style>
+  .search-assist { margin-top: 0.75rem; display: flex; flex-direction: column; gap: 0.6rem; }
+  .search-assist__row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+  .search-assist__label { font-size: 0.75rem; font-weight: 600; color: var(--text-secondary); white-space: nowrap; }
+  .search-assist__chips { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .chip { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.35rem 0.75rem; font-size: 0.78rem; font-weight: 500; border-radius: 999px; border: 1px solid var(--border); background: var(--surface); color: var(--text-secondary); cursor: pointer; transition: all 0.15s; }
+  .chip:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+  .chip--profile { border-style: dashed; border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+  .quick-cats { margin-top: 0.9rem; }
+  .quick-cats__grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 0.5rem; }
+  .quick-cat { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; padding: 0.7rem 0.4rem; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface); cursor: pointer; transition: all 0.15s; font-size: 0.72rem; font-weight: 600; color: var(--text-secondary); }
+  .quick-cat i { font-size: 1.05rem; color: var(--primary); }
+  .quick-cat:hover { border-color: var(--primary); background: var(--primary-light); color: var(--primary); transform: translateY(-2px); }
+  @media (max-width: 768px) {
+    .search-assist__label { width: 100%; }
+  }
+  </style>
+
+  {% if user_skills %}
+  <div class="card mb-4">
+    <div class="card-body" style="padding:var(--space-4)">
+      <div class="flex items-center gap-2 mb-2">
+        <i class="bi bi-person-check-fill" style="color:var(--primary)"></i>
+        <span class="font-semibold text-sm">Skill di profilmu</span>
+        <span class="badge badge-primary">{{ user_skills|length }}</span>
+      </div>
+      <div class="flex flex-wrap gap-1">
+        {% for s in user_skills[:8] %}
+        <span class="skill-badge">{{ s }}</span>
+        {% endfor %}
+        {% if user_skills|length > 8 %}
+        <span class="skill-badge skill-badge--more">+{{ user_skills|length - 8 }}</span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="mb-4">
+    <div class="flex items-center justify-between mb-3">
+      <h1 class="page-header__title mb-0">Lowongan Pekerjaan</h1>
+      <span class="text-muted text-sm font-semibold">
+        {% if all_jobs %}{{ all_jobs|length }} lowongan ditemukan{% endif %}
+      </span>
+    </div>
+    <form method="GET" action="{{ url_for('jobs') }}" id="jobsSearchForm">
+      <div class="search-bar">
+        <input type="text" name="q" id="qInput" class="search-bar__input" placeholder="Ketik judul pekerjaan, mis. Data Engineer, Staff Admin..." value="{{ query }}" autocomplete="off" list="jobTitleList">
+        <datalist id="jobTitleList"></datalist>
+        <select name="cat" id="catSelect" class="search-bar__select">
+          <option value="">Semua Kategori</option>
+          {% for c in categories %}
+          <option value="{{ c }}" {% if selected_cat == c %}selected{% endif %}>{{ c }}</option>
+          {% endfor %}
+        </select>
+        <select name="loc" id="locSelect" class="search-bar__select">
+          <option value="">Semua Lokasi</option>
+          {% for label, value in locations %}
+          <option value="{{ value }}" {% if selected_loc == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        <button class="search-bar__btn btn-loading" type="submit" data-loading="Memuat...">Cari</button>
+      </div>
+    </form>
+
+    <div class="search-assist">
+      <div class="search-assist__row">
+        <span class="search-assist__label"><i class="bi bi-magic"></i>Coba query contoh:</span>
+        <div class="search-assist__chips">
+          <button type="button" class="chip" data-query="saya programmer backend dengan pengalaman python">Programmer backend python</button>
+          <button type="button" class="chip" data-query="perawat berpengalaman merawat pasien di rumah sakit">Perawat di rumah sakit</button>
+          <button type="button" class="chip" data-query="lulusan akuntansi mencari kerja di bagian keuangan">Akuntan bagian keuangan</button>
+          <button type="button" class="chip" data-query="guru yang bisa mengajar bahasa inggris">Guru bahasa inggris</button>
+          <button type="button" class="chip" data-query="saya suka marketing dan penjualan">Marketing & penjualan</button>
+          <button type="button" class="chip" data-query="berpengalaman bekerja di hotel dan restoran">Hotel & restoran</button>
+          <button type="button" class="chip" data-query="operator produksi di pabrik">Operator produksi</button>
+          <button type="button" class="chip" data-query="customer service yang ramah dan jago komunikasi">Customer service</button>
+          <button type="button" class="chip" data-query="mencari kerja di bidang logistik dan gudang">Logistik & gudang</button>
+          <button type="button" class="chip" data-query="administrasi kantor cocok untuk fresh graduate">Administrasi kantor</button>
+        </div>
+      </div>
+      {% if user_skills %}
+      <div class="search-assist__row">
+        <button type="button" class="chip chip--profile" id="useProfileBtn">
+          <i class="bi bi-person-fill me-1"></i>Pakai skill dari profilku ({{ user_skills|length }})
+        </button>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="quick-cats">
+      <div class="quick-cats__grid">
+        <button type="button" class="quick-cat" data-query="perawat berpengalaman merawat pasien di rumah sakit">
+          <i class="bi bi-heart-pulse"></i><span>Kesehatan</span>
+        </button>
+        <button type="button" class="quick-cat" data-query="lulusan akuntansi mencari kerja di bagian keuangan">
+          <i class="bi bi-cash-coin"></i><span>Keuangan</span>
+        </button>
+        <button type="button" class="quick-cat" data-query="guru yang bisa mengajar bahasa inggris">
+          <i class="bi bi-book"></i><span>Pendidikan</span>
+        </button>
+        <button type="button" class="quick-cat" data-query="saya suka marketing dan penjualan">
+          <i class="bi bi-megaphone"></i><span>Marketing</span>
+        </button>
+        <button type="button" class="quick-cat" data-query="berpengalaman bekerja di hotel dan restoran">
+          <i class="bi bi-cup-hot"></i><span>Hotel & Restoran</span>
+        </button>
+        <button type="button" class="quick-cat" data-query="operator produksi di pabrik">
+          <i class="bi bi-gear"></i><span>Manufaktur</span>
+        </button>
+        <button type="button" class="quick-cat" data-query="mencari kerja di bidang logistik dan gudang">
+          <i class="bi bi-box-seam"></i><span>Logistik</span>
+        </button>
+        <button type="button" class="quick-cat" data-query="customer service yang ramah dan jago komunikasi">
+          <i class="bi bi-headset"></i><span>Pelayanan</span>
+        </button>
+        <button type="button" class="quick-cat" data-query="administrasi kantor cocok untuk fresh graduate">
+          <i class="bi bi-folder-check"></i><span>Administrasi</span>
+        </button>
+        <button type="button" class="quick-cat" data-query="saya programmer backend dengan pengalaman python">
+          <i class="bi bi-cpu"></i><span>Teknologi</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  {% set company_colors = ['#14B8A6','#E74C3C','#2ECC71','#F39C12','#9B59B6','#1ABC9C','#E67E22','#0D9488','#E91E63','#00BCD4'] %}
+
+  {% if reco_results %}
+  <div class="mb-6">
+    <div class="flex items-center gap-3 mb-4">
+      <i class="bi bi-stars" style="color:#8b5cf6;font-size:1.1rem"></i>
+      <h2 class="h5 mb-0">Rekomendasi Berdasarkan Skill</h2>
+      <span class="badge badge-neutral" style="background:#ede9fe;color:#6d28d9;">{{ reco_results|length }}</span>
+    </div>
+    <div class="job-grid mb-6">
+      {% for r in reco_results %}
+      {% set color = company_colors[(loop.index0 + 9) % company_colors|length] %}
+      <div class="job-card">
+        <div class="job-card__top">
+          <div class="job-card__logo" style="background:{{ color }};">
+            <span>{{ (r.company or '?')[:1] }}</span>
+          </div>
+          {% if r.match_percent is defined %}
+          <span class="job-card__match" style="background:{% if r.match_percent >= 70 %}var(--success-light);color:var(--success-dark){% elif r.match_percent >= 40 %}var(--warning-light);color:var(--warning){% else %}var(--danger-light);color:var(--danger){% endif %}">
+            {{ r.match_percent }}%
+          </span>
+          {% endif %}
+        </div>
+        <div class="job-card__body">
+          <h3 class="job-card__title">{{ r.job_title }}</h3>
+          <p class="job-card__company">{{ r.company }}</p>
+          <div class="job-card__meta">
+            {% if r.location %}
+            <span class="job-card__meta-item"><i class="bi bi-geo-alt"></i>{{ r.location }}</span>
+            {% endif %}
+            {% if r.job_type %}
+            <span class="job-card__meta-item"><i class="bi bi-briefcase"></i>{{ r.job_type }}</span>
+            {% endif %}
+          </div>
+          {% if r.description %}
+          <p class="job-card__desc">{{ r.description[:200] }}</p>
+          {% endif %}
+          {% if r.categorized_skills %}
+          {% set ns = namespace(shown=0, remaining=0) %}
+          <div class="job-card__skills">
+            {% for cat, skills in r.categorized_skills.items() %}
+            {% for s in skills %}
+            {% if ns.shown < 5 %}
+            <span class="skill-badge">{{ s }}</span>
+            {% set ns.shown = ns.shown + 1 %}
+            {% else %}
+            {% set ns.remaining = ns.remaining + 1 %}
+            {% endif %}
+            {% endfor %}
+            {% endfor %}
+            {% if ns.remaining > 0 %}
+            <span class="skill-badge skill-badge--more">+{{ ns.remaining }} lainnya</span>
+            {% endif %}
+          </div>
+          {% endif %}
+        </div>
+        <div class="job-card__footer">
+          {% if r.date %}
+          <span class="job-card__date"><i class="bi bi-calendar3"></i>{{ r.date[:10] }}</span>
+          {% else %}
+          <span class="job-card__date"></span>
+          {% endif %}
+          <button type="button" class="job-card__btn job-card__btn--outline save-job-btn" title="Simpan lowongan"
+            data-save='{{ {"job_title": r.job_title, "company": r.company, "location": r.location, "job_type": r.job_type, "link": r.link, "date": r.date, "skills": r.skills, "match_percent": (r.match_percent|int) if r.match_percent else 0} | tojson }}'>
+            <i class="bi bi-bookmark"></i>
+          </button>
+          <a href="{{ r.link }}" class="job-card__btn" target="_blank">Lihat <i class="bi bi-box-arrow-up-right"></i></a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  {% if query %}
+  <div class="alert alert-info mb-4" style="padding:var(--space-3) var(--space-4)">
+    <i class="bi bi-info-circle me-1"></i>
+    Hasil untuk "<strong>{{ query }}</strong>"
+    {% if selected_cat %} · kategori "<strong>{{ selected_cat }}</strong>"{% endif %}
+    {% if selected_loc %} · lokasi "<strong>{{ selected_loc }}</strong>"{% endif %}
+    {% if user_skills %} · diurutkan berdasarkan kecocokan{% endif %}
+  </div>
+  {% endif %}
+
+  {% if all_jobs %}
+  <div class="flex items-center gap-3 mb-4">
+    <i class="bi bi-briefcase" style="color:var(--primary);font-size:1.1rem"></i>
+    <h2 class="h5 mb-0">Semua Lowongan</h2>
+    <span class="badge badge-primary">{{ all_jobs|length }}</span>
+    {% if user_skills %}
+    <span class="text-xs text-muted ms-2">diurutkan berdasarkan kecocokan</span>
+    {% endif %}
+  </div>
+  <div class="job-grid mb-6">
+    {% for j in all_jobs %}
+    {% set color = company_colors[(loop.index0 + 3) % company_colors|length] %}
+    <div class="job-card">
+      <div class="job-card__top">
+        {% if j.logo_url %}
+        <div class="job-card__logo" style="background:none;overflow:hidden;">
+          <img src="{{ j.logo_url }}" alt="{{ j.company }}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">
+        </div>
+        {% else %}
+        <div class="job-card__logo" style="background:{{ color }};">
+          <span>{{ (j.company or '?')[:1] }}</span>
+        </div>
+        {% endif %}
+        {% if j.match_score is defined and j.match_score > 0 %}
+        <span class="job-card__match" style="background:{% if j.match_score >= 70 %}var(--success-light);color:var(--success-dark){% elif j.match_score >= 40 %}var(--warning-light);color:var(--warning){% else %}var(--danger-light);color:var(--danger){% endif %}">
+          {{ j.match_score }}%
+        </span>
+        {% endif %}
+      </div>
+      <div class="job-card__body">
+        <h3 class="job-card__title">{{ j.job_title }}</h3>
+        <p class="job-card__company">{{ j.company }}</p>
+        <div class="job-card__meta">
+          {% if j.location %}
+          <span class="job-card__meta-item"><i class="bi bi-geo-alt"></i>{{ j.location }}</span>
+          {% endif %}
+          {% if j.job_type %}
+          <span class="job-card__meta-item"><i class="bi bi-briefcase"></i>{{ j.job_type }}</span>
+          {% endif %}
+          {% if j.salary_min or j.salary_max %}
+          <span class="job-card__meta-item"><i class="bi bi-cash"></i>
+            {% if j.salary_min and j.salary_max %}
+              Rp {{ "{:,.0f}".format(j.salary_min|int) }} - Rp {{ "{:,.0f}".format(j.salary_max|int) }}
+            {% elif j.salary_min %}
+              &ge; Rp {{ "{:,.0f}".format(j.salary_min|int) }}
+            {% elif j.salary_max %}
+              &le; Rp {{ "{:,.0f}".format(j.salary_max|int) }}
+            {% endif %}
+          </span>
+          {% endif %}
+        </div>
+        {% if j.description %}
+        <p class="job-card__desc">{{ j.description[:200] }}</p>
+        {% endif %}
+        {% if j.categorized_skills %}
+        {% set ns = namespace(shown=0, remaining=0) %}
+        <div class="job-card__skills">
+          {% for cat, skills in j.categorized_skills.items() %}
+          {% for s in skills %}
+          {% if ns.shown < 5 %}
+          <span class="skill-badge">{{ s }}</span>
+          {% set ns.shown = ns.shown + 1 %}
+          {% else %}
+          {% set ns.remaining = ns.remaining + 1 %}
+          {% endif %}
+          {% endfor %}
+          {% endfor %}
+          {% if ns.remaining > 0 %}
+          <span class="skill-badge skill-badge--more">+{{ ns.remaining }} lainnya</span>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+      <div class="job-card__footer">
+        {% if j.date %}
+        <span class="job-card__date"><i class="bi bi-calendar3"></i>{{ j.date[:10] }}</span>
+        {% else %}
+        <span class="job-card__date"></span>
+        {% endif %}
+        <div class="job-card__actions">
+          <button type="button" class="job-card__btn job-card__btn--outline save-job-btn" title="Simpan lowongan"
+            data-save='{{ {"job_title": j.job_title, "company": j.company, "location": j.location, "job_type": j.job_type, "link": ("/vacancies/" ~ j._id) if j._source == "employer" else ("/clean-job/" ~ j._index), "date": j.date, "skills": j.skills, "match_percent": (j.match_score|int) if j.match_score else 0} | tojson }}'>
+            <i class="bi bi-bookmark"></i>
+          </button>
+          {% if j._source == 'employer' %}
+          <a href="/vacancies/{{ j._id }}" class="job-card__btn">Lihat Detail <i class="bi bi-arrow-right"></i></a>
+          {% else %}
+          <a href="/clean-job/{{ j._index }}" class="job-card__btn">Lihat Detail <i class="bi bi-arrow-right"></i></a>
+          {% if j.job_url %}
+          <a href="{{ j.job_url }}" target="_blank" class="job-card__btn job-card__btn--outline" title="Lihat di sumber asli" style="padding:0.4rem 0.5rem">
+            <i class="bi bi-box-arrow-up-right"></i>
+          </a>
+          {% endif %}
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <i class="bi bi-search empty-state__icon"></i>
+    <div class="empty-state__title">Tidak ada lowongan ditemukan</div>
+    <p class="empty-state__text">Coba gunakan kata kunci yang berbeda atau hapus filter.</p>
+    <a href="{{ url_for('jobs') }}" class="btn btn-primary">Reset Filter</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  const form = document.getElementById('jobsSearchForm');
+  const qInput = document.getElementById('qInput');
+  const catSelect = document.getElementById('catSelect');
+  const locSelect = document.getElementById('locSelect');
+  const profileSkills = {{ user_skills|tojson }};
+
+  if (!form || !qInput) return;
+
+  const titleList = document.getElementById('jobTitleList');
+  let suggestTimer;
+
+  // Browser kadang mengembalikan nilai input lama saat refresh (form restoration),
+  // padahal URL tidak punya query. Bersihkan supaya tidak "hantu" skill lama.
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlQ = (urlParams.get('q') || '').trim();
+  if (!urlQ && qInput.value.trim()) {
+    qInput.value = '';
+  }
+
+  async function loadTitleSuggestions(q) {
+    try {
+      const res = await fetch('/api/job_title_suggestions?q=' + encodeURIComponent(q || '') + '&limit=12');
+      const data = await res.json();
+      titleList.innerHTML = '';
+      (data.titles || []).forEach(title => {
+        const opt = document.createElement('option');
+        opt.value = title;
+        titleList.appendChild(opt);
+      });
+    } catch (e) { /* abaikan */ }
+  }
+  qInput.addEventListener('input', () => {
+    clearTimeout(suggestTimer);
+    suggestTimer = setTimeout(() => loadTitleSuggestions(qInput.value.trim()), 250);
+  });
+  loadTitleSuggestions('');
+
+  function runQuery(q, cat) {
+    qInput.value = (q || '').trim();
+    if (cat && catSelect) {
+      catSelect.value = cat;
+    } else if (catSelect) {
+      catSelect.value = '';
+    }
+    if (locSelect) {
+      locSelect.value = '';
+    }
+    form.submit();
+  }
+
+  document.querySelectorAll('.chip[data-query]').forEach(chip => {
+    chip.addEventListener('click', () => runQuery(chip.dataset.query, ''));
+  });
+
+  const profileBtn = document.getElementById('useProfileBtn');
+  if (profileBtn && profileSkills && profileSkills.length) {
+    profileBtn.addEventListener('click', () => runQuery(profileSkills.join(', '), ''));
+  }
+
+  document.querySelectorAll('.quick-cat').forEach(card => {
+    card.addEventListener('click', () => runQuery(card.dataset.query, ''));
+  });
+
+  async function saveJob(btn) {
+    let data;
+    try {
+      data = JSON.parse(btn.dataset.save);
+    } catch (e) {
+      return;
+    }
+    btn.disabled = true;
+    try {
+      const res = await fetch('/save_job', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const j = await res.json();
+      if (j.success) {
+        btn.title = 'Tersimpan';
+        btn.classList.add('saved');
+        const icon = btn.querySelector('i');
+        if (icon) icon.className = 'bi bi-bookmark-check-fill';
+      } else {
+        alert('Gagal menyimpan lowongan');
+      }
+    } catch (e) {
+      alert('Gagal menyimpan lowongan');
+    }
+    btn.disabled = false;
+  }
+  document.querySelectorAll('.save-job-btn').forEach(btn => {
+    btn.addEventListener('click', () => saveJob(btn));
+  });
+})();
+</script>
+{% endblock %}

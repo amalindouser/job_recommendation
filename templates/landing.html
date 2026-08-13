@@ -1,639 +1,550 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>JobMatch - Find Your Perfect Job</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #0A66C2;
-            --primary-dark: #004182;
-            --accent: #00D4FF;
-            --bg-light: #f8fafb;
-            --text-dark: #1a1a1a;
-            --text-light: #6b7280;
-        }
+{% extends "base.html" %}
+{% block title %}JobMatch - Temukan Pekerjaan Impianmu{% endblock %}
 
-        * {
-            font-family: 'Poppins', sans-serif;
-        }
+{% block head %}
+<style>
+/* ── Hero ── */
+.hero {
+  background: linear-gradient(135deg, #0F766E 0%, #14B8A6 50%, #0D9488 100%);
+  padding: 140px 0 120px;
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.hero__bg-shapes {
+  position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0;
+}
+.hero__shape {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.1;
+}
+.hero__shape--1 { width: 500px; height: 500px; background: #fff; top: -150px; right: -100px; }
+.hero__shape--2 { width: 300px; height: 300px; background: #fff; bottom: -80px; left: -60px; }
+.hero__shape--3 { width: 200px; height: 200px; background: #5EEAD4; top: 40%; right: 15%; opacity: 0.06; }
+.hero__shape--4 { width: 120px; height: 120px; border: 2px solid rgba(255,255,255,0.15); top: 20%; left: 10%; border-radius: 20px; transform: rotate(30deg); }
+.hero__shape--5 { width: 80px; height: 80px; border: 2px solid rgba(255,255,255,0.12); bottom: 25%; right: 30%; border-radius: 50%; }
 
-        body {
-            overflow-x: hidden;
-        }
+.hero__mockup {
+  position: relative;
+  z-index: 2;
+  animation: float 6s ease-in-out infinite;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-15px); }
+}
+.hero__mockup-card {
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 20px;
+  padding: 28px;
+  width: 100%;
+  max-width: 480px;
+}
+.hero__mockup-dot { width: 10px; height: 10px; border-radius: 50%; }
+.hero__mockup-bar { height: 10px; border-radius: 6px; background: rgba(255,255,255,0.15); }
+.hero__mockup-bar--fill { width: 75%; background: linear-gradient(90deg, #5EEAD4, #2DD4BF); }
+.hero__mockup-pill { background: rgba(255,255,255,0.12); border-radius: 20px; padding: 6px 14px; font-size: 0.75rem; color: rgba(255,255,255,0.8); }
 
-        /* ========== NAVBAR ========== */
-        .navbar {
-            background: #FFFFFF;
-            border-bottom: 1px solid #E5E7EB;
-            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-            padding: 1rem 0;
-            backdrop-filter: blur(10px);
-        }
+/* ── Logos / Trusted By ── */
+.trusted-section {
+  padding: 50px 0;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
+}
+.trusted-logo {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 24px;
+  background: white;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #64748B;
+  transition: all 0.3s;
+}
+.trusted-logo:hover { border-color: #14B8A6; color: #14B8A6; box-shadow: 0 4px 12px rgba(20,184,166,0.1); }
+.trusted-logo i { font-size: 1.2rem; color: #14B8A6; }
 
-        .navbar-brand {
-            font-family: 'Poppins', sans-serif;
-            font-weight: 700;
-            font-size: 1.5rem;
-            color: var(--primary) !important;
-            letter-spacing: -0.5px;
-        }
+/* ── Features ── */
+.features-section {
+  padding: 100px 0;
+  background: #fff;
+}
+.feature-card {
+  background: #fff;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  padding: 36px 28px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+.feature-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  background: linear-gradient(90deg, #14B8A6, #0D9488);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.feature-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.08);
+  border-color: #14B8A6;
+}
+.feature-card:hover::before { opacity: 1; }
+.feature-icon {
+  width: 64px; height: 64px;
+  background: linear-gradient(135deg, #14B8A6, #0D9488);
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.6rem; color: white;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 24px rgba(20,184,166,0.2);
+}
 
-        .navbar-nav .btn {
-            border-radius: 8px;
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
+/* ── How It Works ── */
+.how-section {
+  padding: 100px 0;
+  background: #F8FAFC;
+}
+.step-card {
+  text-align: center;
+  padding: 32px 20px;
+  position: relative;
+}
+.step-number {
+  width: 72px; height: 72px;
+  background: linear-gradient(135deg, #14B8A6, #0D9488);
+  color: white;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.8rem; font-weight: 800;
+  margin: 0 auto 20px;
+  box-shadow: 0 8px 24px rgba(20,184,166,0.25);
+  position: relative;
+}
+.step-connector {
+  position: absolute; top: 36px; left: 60%; width: 80%;
+  height: 2px;
+  background: linear-gradient(90deg, #14B8A6, #E2E8F0);
+  z-index: -1;
+}
+@media (max-width: 768px) { .step-connector { display: none; } }
 
-        .navbar-nav .btn-outline-primary {
-            border: 2px solid var(--primary);
-        }
+/* ── Stats ── */
+.stats-section {
+  padding: 80px 0;
+  background: linear-gradient(135deg, #0F766E, #14B8A6);
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+.stats-section::before {
+  content: '';
+  position: absolute; width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(255,255,255,0.06) 0%, transparent 70%);
+  border-radius: 50%; top: -150px; right: -100px;
+}
+.stat-item { text-align: center; }
+.stat-value {
+  font-size: 3rem; font-weight: 800;
+  line-height: 1.1; margin-bottom: 4px;
+  background: linear-gradient(180deg, #fff 60%, rgba(255,255,255,0.6));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.stat-label { font-size: 0.95rem; opacity: 0.85; font-weight: 500; }
 
-        .navbar-nav .btn-primary {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
+/* ── Testimonials ── */
+.testimonials-section {
+  padding: 100px 0;
+  background: #fff;
+}
+.testimonial-card {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  padding: 32px;
+  transition: all 0.3s;
+}
+.testimonial-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.06);
+}
+.testimonial-stars { color: #F59E0B; font-size: 0.9rem; letter-spacing: 2px; }
+.testimonial-text {
+  font-size: 0.95rem; line-height: 1.7; color: #475569;
+  margin: 16px 0;
+  font-style: italic;
+}
+.testimonial-author { display: flex; align-items: center; gap: 12px; }
+.testimonial-avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 1rem; color: white;
+}
 
-        .navbar-nav .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        }
+/* ── CTA ── */
+.cta-section {
+  padding: 100px 0;
+  background: #F8FAFC;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.cta-section::before {
+  content: '';
+  position: absolute; width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(20,184,166,0.06) 0%, transparent 70%);
+  border-radius: 50%; top: -200px; left: 50%; transform: translateX(-50%);
+}
+.cta-card {
+  background: linear-gradient(135deg, #0F766E, #14B8A6);
+  border-radius: 24px;
+  padding: 64px 40px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+.cta-card::before {
+  content: '';
+  position: absolute; width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 70%);
+  border-radius: 50%; top: -100px; right: -80px;
+}
+.cta-btn {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: white; color: #0F766E;
+  padding: 16px 36px; border-radius: 14px;
+  font-weight: 700; font-size: 1.05rem;
+  transition: all 0.3s; text-decoration: none;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+}
+.cta-btn:hover { transform: translateY(-3px); box-shadow: 0 12px 30px rgba(0,0,0,0.15); color: #0D9488; }
 
-        /* ========== HERO SECTION ========== */
-        .hero {
-            background: linear-gradient(135deg, #0A66C2 0%, #004182 50%, #001f4d 100%);
-            color: white;
-            padding: 120px 0 100px;
-            position: relative;
-            overflow: hidden;
-        }
+/* ── Section Header ── */
+.section-label {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: #CCFBF1; color: #0D9488;
+  padding: 6px 16px; border-radius: 20px;
+  font-size: 0.8rem; font-weight: 600;
+  margin-bottom: 16px;
+}
 
-        .hero::before {
-            content: '';
-            position: absolute;
-            width: 600px;
-            height: 600px;
-            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
-            border-radius: 50%;
-            top: -200px;
-            right: -100px;
-        }
+/* ── Responsive ── */
+@media (max-width: 991px) {
+  .hero { padding: 100px 0 80px; }
+  .hero__mockup { display: none; }
+}
+@media (max-width: 768px) {
+  .hero { padding: 80px 0 60px; }
+  .hero h1 { font-size: 2rem; }
+  .stat-value { font-size: 2rem; }
+  .cta-card { padding: 40px 24px; }
+}
+</style>
+{% endblock %}
 
-        .hero::after {
-            content: '';
-            position: absolute;
-            width: 400px;
-            height: 400px;
-            background: radial-gradient(circle, rgba(0, 212, 255, 0.1) 0%, transparent 70%);
-            border-radius: 50%;
-            bottom: -150px;
-            left: -50px;
-        }
+{% block page_content %}
 
-        .hero-content {
-            position: relative;
-            z-index: 2;
-        }
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+  <div class="hero__bg-shapes">
+    <div class="hero__shape hero__shape--1"></div>
+    <div class="hero__shape hero__shape--2"></div>
+    <div class="hero__shape hero__shape--3"></div>
+    <div class="hero__shape hero__shape--4"></div>
+    <div class="hero__shape hero__shape--5"></div>
+  </div>
 
-        .hero h1 {
-            font-size: 3.5rem;
-            font-weight: 800;
-            line-height: 1.2;
-            margin-bottom: 1.5rem;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-        }
-
-        .hero p {
-            font-size: 1.25rem;
-            margin-bottom: 2rem;
-            opacity: 0.95;
-            line-height: 1.6;
-        }
-
-        .btn-hero {
-            padding: 12px 32px;
-            font-weight: 600;
-            border-radius: 12px;
-            font-size: 1.05rem;
-            transition: all 0.3s ease;
-        }
-
-        .btn-start {
-            background: white;
-            color: var(--primary);
-            border: none;
-        }
-
-        .btn-start:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
-            color: var(--primary);
-            background: #f0f0f0;
-        }
-
-        .btn-learn {
-            background: transparent;
-            color: white;
-            border: 2px solid white;
-        }
-
-        .btn-learn:hover {
-            background: white;
-            color: var(--primary);
-            transform: translateY(-3px);
-        }
-
-        /* ========== FEATURES SECTION ========== */
-        .features {
-            padding: 100px 0;
-            background: var(--bg-light);
-        }
-
-        .section-title {
-            font-size: 2.8rem;
-            font-weight: 700;
-            color: var(--text-dark);
-            margin-bottom: 1rem;
-            text-align: center;
-        }
-
-        .section-subtitle {
-            font-size: 1.1rem;
-            color: var(--text-light);
-            text-align: center;
-            margin-bottom: 3rem;
-        }
-
-        .feature-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 16px;
-            text-align: center;
-            transition: all 0.3s ease;
-            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
-            height: 100%;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(10, 102, 194, 0.15);
-        }
-
-        .feature-icon {
-            width: 70px;
-            height: 70px;
-            background: linear-gradient(135deg, var(--primary) 0%, #0052a3 100%);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            color: white;
-            margin: 0 auto 1.5rem;
-        }
-
-        .feature-card h4 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: var(--text-dark);
-            margin-bottom: 1rem;
-        }
-
-        .feature-card p {
-            color: var(--text-light);
-            font-size: 0.95rem;
-            line-height: 1.6;
-        }
-
-        /* ========== HOW IT WORKS ========== */
-        .how-it-works {
-            padding: 100px 0;
-            background: white;
-        }
-
-        .steps {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 2rem;
-        }
-
-        .step {
-            flex: 1;
-            text-align: center;
-        }
-
-        .step-number {
-            width: 60px;
-            height: 60px;
-            background: var(--primary);
-            color: white;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin: 0 auto 1rem;
-        }
-
-        .step h5 {
-            font-weight: 600;
-            color: var(--text-dark);
-            margin-bottom: 0.5rem;
-        }
-
-        .step p {
-            color: var(--text-light);
-            font-size: 0.9rem;
-        }
-
-        .arrow {
-            color: var(--primary);
-            font-size: 2rem;
-            display: flex;
-            align-items: center;
-        }
-
-        @media (max-width: 768px) {
-            .steps {
-                flex-direction: column;
-                gap: 1rem;
-            }
-            .arrow {
-                transform: rotate(90deg);
-            }
-        }
-
-        /* ========== STATS SECTION ========== */
-        .stats {
-            padding: 80px 0;
-            background: linear-gradient(135deg, var(--primary) 0%, #004182 100%);
-            color: white;
-        }
-
-        .stat-item {
-            text-align: center;
-        }
-
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 0.5rem;
-        }
-
-        .stat-label {
-            font-size: 0.95rem;
-            opacity: 0.9;
-        }
-
-        /* ========== CTA SECTION ========== */
-        .cta {
-            padding: 80px 0;
-            background: var(--bg-light);
-            text-align: center;
-        }
-
-        .cta h2 {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--text-dark);
-            margin-bottom: 1rem;
-        }
-
-        .cta p {
-            font-size: 1.1rem;
-            color: var(--text-light);
-            margin-bottom: 2rem;
-        }
-
-        .btn-cta {
-            padding: 14px 40px;
-            font-weight: 600;
-            font-size: 1.05rem;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            background: var(--primary);
-            color: white;
-            border: none;
-        }
-
-        .btn-cta:hover {
-            background: var(--primary-dark);
-            transform: translateY(-3px);
-            box-shadow: 0 15px 35px rgba(10, 102, 194, 0.3);
-            color: white;
-        }
-
-        /* ========== FOOTER ========== */
-        footer {
-            background: var(--text-dark);
-            color: white;
-            padding: 3rem 0 1rem;
-        }
-
-        footer p {
-            opacity: 0.8;
-            font-size: 0.9rem;
-        }
-
-        .footer-bottom {
-            text-align: center;
-            padding-top: 2rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            opacity: 0.7;
-            font-size: 0.85rem;
-        }
-
-        /* ========== ANIMATIONS ========== */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .fade-in-up {
-            animation: fadeInUp 0.8s ease forwards;
-        }
-
-        .delay-1 { animation-delay: 0.1s; }
-        .delay-2 { animation-delay: 0.2s; }
-        .delay-3 { animation-delay: 0.3s; }
-    </style>
-</head>
-
-<body>
-    <!-- NAVBAR -->
-    <nav class="navbar navbar-expand-lg sticky-top">
-        <div class="container-lg">
-            <a class="navbar-brand" href="/">
-                <i class="bi bi-briefcase-fill me-2"></i>JobMatch
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse ms-auto" id="navbarNav">
-                <div class="ms-auto d-flex gap-2 align-items-center flex-wrap justify-content-end">
-                    {% if current_user.is_authenticated %}
-                        <a class="btn btn-outline-primary" href="/search">
-                            <i class="bi bi-search me-1"></i> Search
-                        </a>
-                        <a class="btn btn-primary" href="{{ url_for('dashboard') }}">
-                            <i class="bi bi-graph-up me-1"></i> Dashboard
-                        </a>
-                        <div class="dropdown">
-                            <button class="btn btn-light dropdown-toggle" type="button" data-bs-toggle="dropdown" style="border-radius: 8px; font-weight: 600; font-size: 0.9rem;">
-                                <i class="bi bi-person-circle me-1"></i> {{ current_user.username }}
-                            </button>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                                <li><a class="dropdown-item" href="/saved"><i class="bi bi-bookmark me-2"></i>Saved Jobs</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item text-danger" href="/logout"><i class="bi bi-box-arrow-right me-2"></i>Logout</a></li>
-                            </ul>
-                        </div>
-                    {% else %}
-                        <a class="btn btn-outline-primary" href="/login">
-                            <i class="bi bi-box-arrow-in-right me-1"></i>Login
-                        </a>
-                        <a class="btn btn-primary" href="/register">
-                            <i class="bi bi-person-plus me-1"></i>Register
-                        </a>
-                    {% endif %}
-                </div>
-            </div>
+  <div class="container" style="position:relative;z-index:2">
+    <div class="flex items-center" style="gap:60px">
+      <div style="flex:1;min-width:0">
+        <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);padding:6px 16px;border-radius:20px;font-size:0.8rem;color:rgba(255,255,255,0.9);margin-bottom:24px;backdrop-filter:blur(10px)">
+          <span style="width:8px;height:8px;border-radius:50%;background:#5EEAD4;display:inline-block;animation:pulse 2s infinite"></span>
+          AI-Powered Job Matching
         </div>
-    </nav>
-
-    <!-- HERO SECTION -->
-    <section class="hero">
-        <div class="container hero-content">
-            <div class="row align-items-center min-vh-100">
-                <div class="col-lg-8">
-                    <h1 class="fade-in-up delay-1">
-                        Find Your <br><span style="color: var(--accent);">Dream Job</span>
-                    </h1>
-                    <p class="fade-in-up delay-2">
-                        An intelligent job recommendation system that matches your skills with the best career opportunities.
-                        Save time, maximize your chances, and accelerate your career.
-                    </p>
-                    <div class="fade-in-up delay-3">
-                        <a class="btn btn-hero btn-start" href="/search">
-                            <i class="bi bi-lightning-charge"></i> Get Started
-                        </a>
-                        <a class="btn btn-hero btn-learn ms-3" href="#features">
-                            <i class="bi bi-info-circle"></i> Learn More
-                        </a>
-                    </div>
-                </div>
-            </div>
+        <h1 style="font-size:3.5rem;font-weight:800;line-height:1.1;color:white;margin-bottom:20px;letter-spacing:-1px">
+          Temukan <span style="background:linear-gradient(135deg,#5EEAD4,#2DD4BF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Pekerjaan Impian</span><br>dengan Kecerdasan AI
+        </h1>
+        <p style="font-size:1.15rem;color:rgba(255,255,255,0.85);line-height:1.7;margin-bottom:32px;max-width:520px">
+          Sistem rekomendasi cerdas yang mencocokkan keahlian Anda dengan peluang karir terbaik dari ribuan lowongan di seluruh dunia.
+        </p>
+        <form action="/jobs" method="GET" class="flex gap-2" style="margin-bottom:24px;max-width:500px;background:white;border-radius:14px;padding:6px;box-shadow:0 8px 30px rgba(0,0,0,0.12);">
+          <input type="text" name="q" placeholder="Cari lowongan berdasarkan skill..." style="flex:1;border:none;padding:10px 16px;font-size:0.9rem;outline:none;border-radius:10px;color:#1e293b;" required>
+          <button type="submit" style="background:linear-gradient(135deg,#14B8A6,#0D9488);color:white;border:none;border-radius:10px;padding:10px 22px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:8px;transition:opacity 0.2s;" onmouseover="this.style.opacity=0.9" onmouseout="this.style.opacity=1">
+            <i class="bi bi-search"></i> Cari
+          </button>
+        </form>
+        <div class="flex gap-3 flex-wrap">
+          {% if current_user.is_authenticated and current_user.role == 'job_seeker' %}
+          <a href="{{ url_for('jobs') }}" class="cta-btn">
+            <i class="bi bi-lightning-charge-fill"></i> Cari Cerdas
+            <i class="bi bi-arrow-right" style="font-size:0.85rem"></i>
+          </a>
+          {% else %}
+          <a href="/register" class="cta-btn">
+            <i class="bi bi-person-plus-fill"></i> Daftar Gratis
+            <i class="bi bi-arrow-right" style="font-size:0.85rem"></i>
+          </a>
+          {% endif %}
+          <a href="#features" style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.25);color:white;padding:16px 28px;border-radius:14px;font-weight:600;text-decoration:none;backdrop-filter:blur(10px);transition:all 0.3s">
+            <i class="bi bi-play-circle"></i> Lihat Demo
+          </a>
         </div>
-    </section>
-
-    <!-- FEATURES SECTION -->
-    <section class="features" id="features">
-        <div class="container">
-            <h2 class="section-title">Why Choose Job Recommendation?</h2>
-            <p class="section-subtitle">State-of-the-art technology to help you find the perfect job</p>
-
-            <div class="row g-4">
-                <div class="col-lg-4 col-md-6">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="bi bi-robot"></i>
-                        </div>
-                        <h4>Powered Matching</h4>
-                        <p>Advanced machine learning analyzes your skills and finds the most relevant job openings.</p>
-                    </div>
-                </div>
-
-                <div class="col-lg-4 col-md-6">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="bi bi-lightning-fill"></i>
-                        </div>
-                        <h4>Fast Search</h4>
-                        <p>Get results in seconds. Filter by location, skills, or industry to find the right opportunities.</p>
-                    </div>
-                </div>
-
-                <div class="col-lg-4 col-md-6">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="bi bi-bookmark-fill"></i>
-                        </div>
-                        <h4>Save Favorites</h4>
-                        <p>Save jobs you like and access them anytime. Manage your list with ease.</p>
-                    </div>
-                </div>
-
-                <div class="col-lg-4 col-md-6">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="bi bi-graph-up-arrow"></i>
-                        </div>
-                        <h4>Analytics Dashboard</h4>
-                        <p>View in-depth insights about job trends, most in-demand skills, and opportunities across countries.</p>
-                    </div>
-                </div>
-
-                <div class="col-lg-4 col-md-6">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="bi bi-globe"></i>
-                        </div>
-                        <h4>Global Reach</h4>
-                        <p>Access thousands of job listings from around the world and expand your career internationally.</p>
-                    </div>
-                </div>
-
-                <div class="col-lg-4 col-md-6">
-                    <div class="feature-card">
-                        <div class="feature-icon">
-                            <i class="bi bi-shield-check"></i>
-                        </div>
-                        <h4>Trusted & Secure</h4>
-                        <p>Your data is protected. We prioritize privacy and security for all users.</p>
-                    </div>
-                </div>
-            </div>
+        <div class="flex items-center gap-4" style="margin-top:40px;padding-top:28px;border-top:1px solid rgba(255,255,255,0.12)">
+          <div class="flex" style="margin-right:8px">
+            <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#F59E0B,#F97316);border:2px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;color:white">A</div>
+            <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#3B82F6,#2563EB);border:2px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;color:white;margin-left:-8px">R</div>
+            <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#8B5CF6,#7C3AED);border:2px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;color:white;margin-left:-8px">S</div>
+            <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#14B8A6,#0D9488);border:2px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:0.7rem;font-weight:700;color:white;margin-left:-8px">+</div>
+          </div>
+          <span style="color:rgba(255,255,255,0.7);font-size:0.85rem;font-weight:500">Dipercaya 2.000+ pencari kerja</span>
         </div>
-    </section>
+      </div>
 
-    <!-- HOW IT WORKS -->
-    <section class="how-it-works">
-        <div class="container">
-            <h2 class="section-title">How It Works</h2>
-            <p class="section-subtitle">Just 3 easy steps to discover your dream job</p>
-
-            <div class="row mt-5">
-                <div class="col-12">
-                    <div class="steps">
-                        <div class="step">
-                            <div class="step-number">1</div>
-                            <h5>Enter Your Skills</h5>
-                            <p>Describe your skills and experience</p>
-                        </div>
-
-                        <div class="arrow d-none d-md-flex">
-                            <i class="bi bi-arrow-right"></i>
-                        </div>
-
-                        <div class="step">
-                            <div class="step-number">2</div>
-                            <h5>AdvanceAnalysis</h5>
-                            <p>Our system analyzes and matches your profile with the job database</p>
-                        </div>
-
-                        <div class="arrow d-none d-md-flex">
-                            <i class="bi bi-arrow-right"></i>
-                        </div>
-
-                        <div class="step">
-                            <div class="step-number">3</div>
-                            <h5>Get Results</h5>
-                            <p>See the best job matches tailored to your profile</p>
-                        </div>
-                    </div>
-                </div>
+      <div class="hero__mockup" style="flex:1;min-width:0">
+        <div class="hero__mockup-card">
+          <div class="flex items-center gap-2" style="margin-bottom:20px">
+            <div class="hero__mockup-dot" style="background:#EF4444"></div>
+            <div class="hero__mockup-dot" style="background:#F59E0B"></div>
+            <div class="hero__mockup-dot" style="background:#10B981"></div>
+            <span style="color:rgba(255,255,255,0.5);font-size:0.7rem;margin-left:8px;letter-spacing:1px">DASHBOARD</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+            <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center">
+              <i class="bi bi-person" style="color:rgba(255,255,255,0.6)"></i>
             </div>
-        </div>
-    </section>
-
-    <!-- STATS SECTION -->
-    <section class="stats">
-        <div class="container">
-            <div class="row text-center">
-                <div class="col-md-3 col-6 mb-3">
-                    <div class="stat-item">
-                        <div class="stat-number">5000+</div>
-                        <div class="stat-label">Job Listings</div>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6 mb-3">
-                    <div class="stat-item">
-                        <div class="stat-number">50+</div>
-                        <div class="stat-label">Countries</div>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6">
-                    <div class="stat-item">
-                        <div class="stat-number">95%</div>
-                        <div class="stat-label">Match Rate</div>
-                    </div>
-                </div>
-                <div class="col-md-3 col-6">
-                    <div class="stat-item">
-                        <div class="stat-number">24/7</div>
-                        <div class="stat-label">Available</div>
-                    </div>
-                </div>
+            <div style="flex:1">
+              <div style="width:120px;height:10px;border-radius:6px;background:rgba(255,255,255,0.15);margin-bottom:6px"></div>
+              <div style="width:80px;height:8px;border-radius:6px;background:rgba(255,255,255,0.1)"></div>
             </div>
-        </div>
-    </section>
-
-
-
-    <!-- CTA SECTION -->
-    <section class="cta">
-        <div class="container">
-            <h2>Ready to Start a New Career Journey?</h2>
-            <p>Join thousands of job seekers who found their ideal roles.</p>
-            <a class="btn btn-cta btn-lg" href="/search">
-                <i class="bi bi-play-circle"></i> Get Started - Free!
-            </a>
-        </div>
-    </section>
-
-    <!-- FOOTER -->
-    <footer>
-        <div class="container">
-            <div class="row mb-4">
-                <div class="col-md-4">
-                    <h6 class="fw-bold mb-3">
-                        <i class="bi bi-briefcase-fill me-2"></i>Job Recommendation
-                    </h6>
-                    <p>An powered job recommendation platform to help you discover your next career move.</p>
-                </div>
-                <div class="col-md-4">
-                    <h6 class="fw-bold mb-3">Navigation</h6>
-                    <ul class="list-unstyled">
-                        <li><a href="/search" class="text-white text-decoration-none">Search Jobs</a></li>
-                        <li><a href="{{ url_for('dashboard') }}" class="text-white text-decoration-none">Dashboard</a></li>
-                        <li><a href="{{ url_for('saved_jobs') }}" class="text-white text-decoration-none">Saved Jobs</a></li>
-                    </ul>
-                </div>
-                <div class="col-md-4">
-                    <h6 class="fw-bold mb-3">Contact</h6>
-                    <p>Email: vamalindo@gmail.com</p>
-                    <p>Support: 24/7 Available</p>
-                </div>
+            <div class="hero__mockup-pill"><i class="bi bi-star-fill" style="color:#F59E0B;margin-right:4px"></i>95% Match</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+            <div style="background:rgba(255,255,255,0.08);border-radius:14px;padding:16px">
+              <div style="font-size:1.5rem;font-weight:700;color:white">1.2K</div>
+              <div style="font-size:0.7rem;color:rgba(255,255,255,0.6)">Lowongan</div>
             </div>
-            <div class="footer-bottom">
-                <p>&copy; 2025 Job Recommendation System — AMLD</p>
+            <div style="background:rgba(255,255,255,0.08);border-radius:14px;padding:16px">
+              <div style="font-size:1.5rem;font-weight:700;color:white">87%</div>
+              <div style="font-size:0.7rem;color:rgba(255,255,255,0.6)">Kecocokan</div>
             </div>
+          </div>
+          <div style="margin-bottom:16px">
+            <div class="flex items-center justify-between" style="margin-bottom:8px">
+              <span style="font-size:0.75rem;color:rgba(255,255,255,0.6)">Rekomendasi Terbaik</span>
+              <span style="font-size:0.7rem;color:#5EEAD4">Lihat Semua →</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 12px">
+                <div style="width:6px;height:6px;border-radius:50%;background:#5EEAD4"></div>
+                <div style="flex:1;font-size:0.8rem;color:rgba(255,255,255,0.9)">Senior Frontend Developer</div>
+                <span style="font-size:0.7rem;color:#5EEAD4;font-weight:600">98%</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.06);border-radius:10px;padding:10px 12px">
+                <div style="width:6px;height:6px;border-radius:50%;background:#5EEAD4"></div>
+                <div style="flex:1;font-size:0.8rem;color:rgba(255,255,255,0.9)">Data Scientist</div>
+                <span style="font-size:0.7rem;color:#5EEAD4;font-weight:600">92%</span>
+              </div>
+            </div>
+          </div>
+          <div class="hero__mockup-bar" style="position:relative;overflow:hidden">
+            <div class="hero__mockup-bar--fill" style="height:100%;border-radius:6px"></div>
+          </div>
         </div>
-    </footer>
+      </div>
+    </div>
+  </div>
+</section>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Smooth scroll untuk link anchor
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                const target = document.querySelector(this.getAttribute('href'));
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth' });
-                }
-            });
-        });
-    </script>
-</body>
-</html>
+<!-- ═══ TRUSTED BY ═══ -->
+<section class="trusted-section">
+  <div class="container">
+    <p style="text-align:center;font-size:0.8rem;color:#94A3B8;font-weight:600;text-transform:uppercase;letter-spacing:2px;margin-bottom:24px">Digunakan oleh perusahaan terkemuka</p>
+    <div class="flex items-center justify-center" style="gap:16px;flex-wrap:wrap">
+      <div class="trusted-logo"><i class="bi bi-building"></i> TechCorp</div>
+      <div class="trusted-logo"><i class="bi bi-graph-up"></i> DataFlow</div>
+      <div class="trusted-logo"><i class="bi bi-cloud"></i> CloudBase</div>
+      <div class="trusted-logo"><i class="bi bi-shield"></i> SecureID</div>
+      <div class="trusted-logo"><i class="bi bi-cpu"></i> NextGen</div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ FEATURES ═══ -->
+<section class="features-section" id="features">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:60px">
+      <div class="section-label" style="margin:0 auto 16px"><i class="bi bi-stars"></i> Fitur Unggulan</div>
+      <h2 style="font-size:2.2rem;font-weight:800;color:#0F172A;letter-spacing:-0.5px;margin-bottom:12px">Mengapa JobMatch Berbeda?</h2>
+      <p style="color:#64748B;font-size:1.05rem;max-width:560px;margin:0 auto">Kombinasi AI canggih dan knowledge graph untuk rekomendasi yang akurat dan personal.</p>
+    </div>
+    <div class="grid grid-cols-3" style="gap:24px">
+      <div class="feature-card">
+        <div class="feature-icon"><i class="bi bi-robot"></i></div>
+        <h4 style="font-size:1.1rem;font-weight:700;color:#0F172A;margin-bottom:10px">Pencocokan AI Cerdas</h4>
+        <p style="font-size:0.9rem;color:#64748B;line-height:1.7">Machine learning menganalisis keahlian, pengalaman, dan preferensi Anda untuk menemukan lowongan paling relevan.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><i class="bi bi-diagram-2"></i></div>
+        <h4 style="font-size:1.1rem;font-weight:700;color:#0F172A;margin-bottom:10px">Knowledge Graph</h4>
+        <p style="font-size:0.9rem;color:#64748B;line-height:1.7">Pemetaan relasi antara skill, pekerjaan, dan industri untuk rekomendasi yang lebih kontekstual.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><i class="bi bi-graph-up-arrow"></i></div>
+        <h4 style="font-size:1.1rem;font-weight:700;color:#0F172A;margin-bottom:10px">Analitik Personal</h4>
+        <p style="font-size:0.9rem;color:#64748B;line-height:1.7">Dashboard interaktif dengan insight tren pasar kerja, skill gap, dan peluang karir potensial.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><i class="bi bi-lightning-charge"></i></div>
+        <h4 style="font-size:1.1rem;font-weight:700;color:#0F172A;margin-bottom:10px">Hasil Instan</h4>
+        <p style="font-size:0.9rem;color:#64748B;line-height:1.7">Dapatkan rekomendasi pekerjaan dalam hitungan detik dengan algoritma pencarian yang dioptimalkan.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><i class="bi bi-globe"></i></div>
+        <h4 style="font-size:1.1rem;font-weight:700;color:#0F172A;margin-bottom:10px">Jangkauan Global</h4>
+        <p style="font-size:0.9rem;color:#64748B;line-height:1.7">Akses ribuan lowongan dari berbagai negara dan industri. Perluas karir Anda secara internasional.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon"><i class="bi bi-building"></i></div>
+        <h4 style="font-size:1.1rem;font-weight:700;color:#0F172A;margin-bottom:10px">Portal Perusahaan</h4>
+        <p style="font-size:0.9rem;color:#64748B;line-height:1.7">Fitur lengkap untuk rekrutmen: buat lowongan, analisis pelamar, dan kelola talenta dengan graph interaktif.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ HOW IT WORKS ═══ -->
+<section class="how-section">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:60px">
+      <div class="section-label" style="margin:0 auto 16px"><i class="bi bi-gear"></i> Cara Kerja</div>
+      <h2 style="font-size:2.2rem;font-weight:800;color:#0F172A;letter-spacing:-0.5px;margin-bottom:12px">Mulai dalam 3 Langkah Mudah</h2>
+      <p style="color:#64748B;font-size:1.05rem;max-width:500px;margin:0 auto">Hanya butuh beberapa menit untuk memulai perjalanan karir baru Anda.</p>
+    </div>
+    <div class="grid grid-cols-3" style="gap:32px">
+      <div class="step-card">
+        <div class="step-number">1</div>
+        <div class="step-connector"></div>
+        <h5 style="font-size:1.05rem;font-weight:700;color:#0F172A;margin-bottom:8px">Masukkan Profil</h5>
+        <p style="font-size:0.88rem;color:#64748B;line-height:1.6">Ceritakan keahlian, pengalaman, dan preferensi lokasi kerja Anda.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-number">2</div>
+        <div class="step-connector"></div>
+        <h5 style="font-size:1.05rem;font-weight:700;color:#0F172A;margin-bottom:8px">Analisis AI</h5>
+        <p style="font-size:0.88rem;color:#64748B;line-height:1.6">Sistem kami memproses dan mencocokkan dengan database ribuan lowongan.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-number">3</div>
+        <h5 style="font-size:1.05rem;font-weight:700;color:#0F172A;margin-bottom:8px">Dapatkan Rekomendasi</h5>
+        <p style="font-size:0.88rem;color:#64748B;line-height:1.6">Lihat daftar pekerjaan terbaik yang sesuai dengan profil unik Anda.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ STATS ═══ -->
+<section class="stats-section">
+  <div class="container">
+    <div class="grid grid-cols-4" style="gap:32px">
+      <div class="stat-item">
+        <div class="stat-value">2.000+</div>
+        <div class="stat-label">Lowongan Tersedia</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">50+</div>
+        <div class="stat-label">Negara Tercakup</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">95%</div>
+        <div class="stat-label">Akurasi Kecocokan</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-value">24/7</div>
+        <div class="stat-label">Akses Kapan Saja</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ TESTIMONIALS ═══ -->
+<section class="testimonials-section">
+  <div class="container">
+    <div style="text-align:center;margin-bottom:60px">
+      <div class="section-label" style="margin:0 auto 16px"><i class="bi bi-chat-quote"></i> Testimoni</div>
+      <h2 style="font-size:2.2rem;font-weight:800;color:#0F172A;letter-spacing:-0.5px;margin-bottom:12px">Apa Kata Pengguna?</h2>
+      <p style="color:#64748B;font-size:1.05rem;max-width:500px;margin:0 auto">Dengarkan pengalaman mereka yang telah menemukan pekerjaan impian.</p>
+    </div>
+    <div class="grid grid-cols-3" style="gap:24px">
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-text">"JobMatch benar-benar membantu saya menemukan posisi yang sesuai. Rekomendasi skill graph-nya sangat akurat!"</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" style="background:linear-gradient(135deg,#14B8A6,#0D9488)">A</div>
+          <div>
+            <div style="font-weight:600;font-size:0.9rem;color:#0F172A">Ahmad R.</div>
+            <div style="font-size:0.78rem;color:#94A3B8">Frontend Developer</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-text">"Saya suka fitur analitiknya. Bisa lihat skill mana yang paling dibutuhkan di industri saat ini."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" style="background:linear-gradient(135deg,#3B82F6,#2563EB)">S</div>
+          <div>
+            <div style="font-weight:600;font-size:0.9rem;color:#0F172A">Siti N.</div>
+            <div style="font-size:0.78rem;color:#94A3B8">Data Analyst</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial-card">
+        <div class="testimonial-stars">★★★★☆</div>
+        <p class="testimonial-text">"Proses rekrutmen jadi lebih efisien dengan portal perusahaan. Dashboard graph-nya sangat membantu."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar" style="background:linear-gradient(135deg,#8B5CF6,#7C3AED)">B</div>
+          <div>
+            <div style="font-weight:600;font-size:0.9rem;color:#0F172A">Budi P.</div>
+            <div style="font-size:0.78rem;color:#94A3B8">HR Manager</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ CTA ═══ -->
+<section class="cta-section">
+  <div class="container" style="position:relative;z-index:1">
+    <div class="cta-card">
+      <div style="position:relative;z-index:1">
+        <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);padding:6px 16px;border-radius:20px;font-size:0.78rem;color:rgba(255,255,255,0.85);margin-bottom:20px">
+          <i class="bi bi-rocket-takeoff"></i> Gratis Selamanya
+        </div>
+        <h2 style="font-size:2.5rem;font-weight:800;margin-bottom:12px;letter-spacing:-0.5px">Siap Memulai Karir Baru?</h2>
+        <p style="font-size:1.05rem;opacity:0.9;margin-bottom:32px;max-width:500px;margin-left:auto;margin-right:auto">Bergabung dengan ribuan profesional yang telah menemukan peluang karir terbaik mereka.</p>
+        <a href="{{ url_for('jobs') }}" class="cta-btn">
+          <i class="bi bi-rocket-takeoff-fill"></i> Mulai Sekarang — Gratis!
+        </a>
+        <div style="margin-top:24px;display:flex;align-items:center;justify-content:center;gap:16px;font-size:0.82rem;opacity:0.75">
+          <span><i class="bi bi-check-circle"></i> No credit card</span>
+          <span><i class="bi bi-check-circle"></i> Setup 1 menit</span>
+          <span><i class="bi bi-check-circle"></i> Batalkan kapan saja</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<style>
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+</style>
+{% endblock %}

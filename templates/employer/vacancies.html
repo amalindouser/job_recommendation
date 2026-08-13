@@ -1,0 +1,149 @@
+{% extends "employer/base_employer.html" %}
+{% block title %}Lowongan — Employer{% endblock %}
+{% block page_title %}Lowongan{% endblock %}
+{% block breadcrumb %}Lowongan{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+  <div>
+    <p style="color:#64748b;font-size:0.9rem;margin:0;">Jelajahi dan kelola lowongan pekerjaan</p>
+  </div>
+  <div style="display:flex;gap:8px;">
+    <a class="btn btn-primary" href="/employer/vacancies/create-smart" style="background:linear-gradient(135deg,#14B8A6,#0D9488);border:none;box-shadow:0 2px 8px rgba(20,184,166,0.25);">
+      <i class="bi bi-wand mr-2"></i> Buat Cerdas
+    </a>
+    <a class="btn btn-outline" href="/employer/vacancies/create">
+      <i class="bi bi-plus-lg mr-2"></i> Buat Cepat
+    </a>
+  </div>
+</div>
+
+<form method="get" style="margin-bottom:20px;">
+  <input type="hidden" name="tab" value="{{ tab }}">
+  <div style="display:flex;gap:8px;">
+    <div style="flex:1;position:relative;">
+      <i class="bi bi-search" style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#94a3b8;"></i>
+      <input type="text" class="form-input" name="search" value="{{ search }}"
+        placeholder="Cari berdasarkan judul, perusahaan, atau keahlian..."
+        style="padding-left:38px;">
+    </div>
+    <button class="btn btn-primary" type="submit" style="background:linear-gradient(135deg,#14B8A6,#0D9488);border:none;">
+      <i class="bi bi-search"></i>
+    </button>
+  </div>
+</form>
+
+<div class="tabs" style="margin-bottom:20px;">
+  <a class="tabs__tab {% if tab == 'own' %}tabs__tab--active{% endif %}"
+     href="?tab=own{% if search %}&search={{ search }}{% endif %}">
+    <i class="bi bi-briefcase mr-2"></i> Lowongan Saya
+    <span class="badge badge-primary ml-2" style="background:rgba(20,184,166,0.1);color:#14B8A6;border-color:#14B8A6;">{{ own_vacancies|length }}</span>
+  </a>
+  <a class="tabs__tab {% if tab == 'historical' %}tabs__tab--active{% endif %}"
+     href="?tab=historical{% if search %}&search={{ search }}{% endif %}">
+    <i class="bi bi-archive mr-2"></i> Lowongan Umum
+    <span class="badge badge-neutral ml-2">{{ historical_vacancies|length }}</span>
+  </a>
+</div>
+
+{% if tab == 'own' %}
+  {% set vacancies = own_vacancies %}
+{% else %}
+  {% set vacancies = historical_vacancies %}
+{% endif %}
+
+{% if vacancies %}
+<div style="overflow-x:auto;border:1px solid #e2e8f0;border-radius:14px;background:white;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+  <table style="width:100%;border-collapse:collapse;">
+    <thead>
+      <tr style="background:#f8fafc;">
+        <th style="padding:1rem 1.25rem;font-size:0.8rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;text-align:left;border-bottom:2px solid #f1f5f9;">Pekerjaan</th>
+        <th style="padding:1rem 1.25rem;font-size:0.8rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;text-align:left;border-bottom:2px solid #f1f5f9;">Perusahaan</th>
+        <th style="padding:1rem 1.25rem;font-size:0.8rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;text-align:left;border-bottom:2px solid #f1f5f9;">Level</th>
+        <th style="padding:1rem 1.25rem;font-size:0.8rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;text-align:left;border-bottom:2px solid #f1f5f9;">Tipe</th>
+        <th style="padding:1rem 1.25rem;font-size:0.8rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;text-align:left;border-bottom:2px solid #f1f5f9;">Keahlian</th>
+        <th style="padding:1rem 1.25rem;font-size:0.8rem;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:0.5px;text-align:center;border-bottom:2px solid #f1f5f9;">Aksi</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for v in vacancies %}
+      <tr onclick="window.location='/employer/vacancies/{{ v.id }}'" style="cursor:pointer;transition:all 0.2s;">
+        <td style="padding:0.9rem 1.25rem;border-bottom:1px solid #f1f5f9;vertical-align:middle;">
+          <div style="font-weight:600;font-size:0.95rem;color:#0f172a;">
+            {{ v.job_title }}
+            {% if tab == 'own' %}
+              <span class="badge badge-success ml-2" style="font-size:0.55rem;vertical-align:middle;background:rgba(20,184,166,0.1);color:#14B8A6;border-color:#14B8A6;">Baru</span>
+            {% else %}
+              <span class="badge badge-neutral ml-2" style="font-size:0.55rem;vertical-align:middle;">Historis</span>
+            {% endif %}
+          </div>
+          {% if v.location %}
+            <small style="color:#94a3b8;display:block;margin-top:2px;"><i class="bi bi-geo-alt mr-2"></i>{{ v.location }}</small>
+          {% endif %}
+          {% if not v.historical and v.created_at %}
+            <small style="color:#94a3b8;">{{ v.created_at[:10] }}</small>
+          {% endif %}
+        </td>
+        <td style="padding:0.9rem 1.25rem;border-bottom:1px solid #f1f5f9;vertical-align:middle;color:#475569;">{{ v.company }}</td>
+        <td style="padding:0.9rem 1.25rem;border-bottom:1px solid #f1f5f9;vertical-align:middle;">
+          <span style="display:inline-flex;align-items:center;background:rgba(99,102,241,0.1);color:#6366f1;border-radius:20px;padding:0.15rem 0.65rem;font-size:0.75rem;font-weight:500;">{{ v.job_level or '-' }}</span>
+        </td>
+        <td style="padding:0.9rem 1.25rem;border-bottom:1px solid #f1f5f9;vertical-align:middle;">
+          <span style="display:inline-flex;align-items:center;background:rgba(245,158,11,0.1);color:#f59e0b;border-radius:20px;padding:0.15rem 0.65rem;font-size:0.75rem;font-weight:500;">{{ v.job_type or '-' }}</span>
+        </td>
+        <td style="padding:0.9rem 1.25rem;border-bottom:1px solid #f1f5f9;vertical-align:middle;">
+          <div style="display:flex;flex-wrap:wrap;gap:4px;">
+            {% for s in v.skills[:3] %}
+              <span style="display:inline-flex;align-items:center;background:#f1f5f9;color:#475569;border-radius:20px;padding:0.1rem 0.55rem;font-size:0.7rem;font-weight:500;border:1px solid #e2e8f0;">{{ s }}</span>
+            {% endfor %}
+            {% if v.skills|length > 3 %}
+              <span style="display:inline-flex;align-items:center;background:transparent;color:#94a3b8;border-radius:20px;padding:0.1rem 0.55rem;font-size:0.65rem;font-weight:500;border:1px solid #e2e8f0;">+{{ v.skills|length - 3 }}</span>
+            {% endif %}
+          </div>
+        </td>
+        <td style="padding:0.9rem 1.25rem;border-bottom:1px solid #f1f5f9;vertical-align:middle;text-align:center;" onclick="event.stopPropagation()">
+          <div style="display:flex;align-items:center;justify-content:center;gap:4px;">
+            <a href="/employer/vacancies/{{ v.id }}" class="btn btn-sm" style="background:#f1f5f9;color:#475569;border:none;border-radius:8px;padding:6px 10px;font-size:0.75rem;text-decoration:none;" title="Detail">
+              <i class="bi bi-eye"></i>
+            </a>
+            {% if tab == 'own' and not v.historical %}
+            <a href="/employer/vacancies/{{ v.id }}/edit" class="btn btn-sm" style="background:rgba(20,184,166,0.1);color:#14B8A6;border:none;border-radius:8px;padding:6px 10px;font-size:0.75rem;text-decoration:none;" title="Edit">
+              <i class="bi bi-pencil"></i>
+            </a>
+            <form method="POST" action="/employer/vacancies/{{ v.id }}/delete" style="display:inline;margin:0;">
+              <button type="submit" class="btn btn-sm" style="background:rgba(239,68,68,0.1);color:#ef4444;border:none;border-radius:8px;padding:6px 10px;font-size:0.75rem;cursor:pointer;" title="Hapus" onclick="if(!confirm('Yakin hapus lowongan ini?')){event.preventDefault();event.stopPropagation();return false;}">
+                <i class="bi bi-trash"></i>
+              </button>
+            </form>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div style="text-align:center;padding:80px 20px;color:#94a3b8;">
+  <i class="bi bi-inbox" style="font-size:3rem;color:#e2e8f0;display:block;margin-bottom:16px;"></i>
+  <h3 style="font-weight:600;font-size:1.2rem;color:#475569;margin-bottom:8px;">Tidak ada lowongan</h3>
+  {% if search %}
+    <p style="margin-bottom:24px;">Tidak ada hasil untuk "{{ search }}". Coba pencarian lain.</p>
+  {% else %}
+    {% if tab == 'own' %}
+      <p style="margin-bottom:24px;">Anda belum membuat lowongan apapun.</p>
+      <div style="display:flex;gap:8px;justify-content:center;">
+        <a class="btn btn-primary" href="/employer/vacancies/create-smart" style="background:linear-gradient(135deg,#14B8A6,#0D9488);border:none;">
+          <i class="bi bi-wand mr-2"></i> Buat Cerdas
+        </a>
+        <a class="btn btn-outline" href="/employer/vacancies/create">
+          <i class="bi bi-plus-lg mr-2"></i> Buat Cepat
+        </a>
+      </div>
+    {% else %}
+      <p>Tidak ada data lowongan umum tersedia.</p>
+    {% endif %}
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,225 @@
+{% extends "employer/base_employer.html" %}
+{% block title %}Pelamar — {{ vacancy.job_title }}{% endblock %}
+{% block page_title %}Pelamar{% endblock %}
+{% block breadcrumb %}
+  <a href="/employer/vacancies">Lowongan</a>
+  <span class="separator">/</span>
+  <a href="/employer/vacancies/{{ vacancy.id }}">{{ vacancy.job_title[:20] }}...</a>
+  <span class="separator">/</span>
+  <span>Pelamar</span>
+{% endblock %}
+
+{% block content %}
+<h2 style="font-size:1.2rem;font-weight:700;color:#0f172a;margin-bottom:20px;">
+  <i class="bi bi-people mr-2" style="color:#14B8A6;"></i>
+  Pelamar — {{ vacancy.job_title }}
+  <small style="color:#64748b;font-size:0.85rem;font-weight:400;margin-left:8px;">{{ vacancy.company }}</small>
+</h2>
+
+{% if not applicants or applicants|length == 0 %}
+<div style="text-align:center;padding:60px 20px;color:#94a3b8;">
+  <i class="bi bi-inbox" style="font-size:3rem;color:#e2e8f0;display:block;margin-bottom:16px;"></i>
+  <p>Belum ada pelamar untuk lowongan ini.</p>
+</div>
+{% else %}
+<div style="display:flex;flex-direction:column;gap:16px;">
+  {% for a in applicants %}
+  <div class="card-new">
+    <div class="card-new-body">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;">
+        <div>
+          <h5 class="font-bold mb-1" style="color:#0f172a;">{{ a.profile.full_name if a.profile else a.username }}</h5>
+          <small style="color:#94a3b8;">
+            <i class="bi bi-calendar3 mr-2"></i> Melamar: {{ a.created_at[:19] }}
+          </small>
+          {% if a.profile %}
+            <a href="/profile/{{ a.user_id }}" class="btn btn-outline btn-sm ml-2" target="_blank">
+              <i class="bi bi-person-badge mr-2"></i>Lihat Profil
+            </a>
+          {% endif %}
+        </div>
+        <div>
+          {% set status_class = {'pending': 'badge-warning', 'reviewed': 'badge-neutral', 'accepted': 'badge-success', 'rejected': 'badge-danger'} %}
+          {% set status_label = {'pending': 'Pending', 'reviewed': 'Ditinjau', 'accepted': 'Diterima', 'rejected': 'Ditolak'} %}
+          <span class="badge {{ status_class.get(a.status, 'badge-neutral') }}" style="font-size:0.85rem;padding:0.4rem 0.9rem;">
+            {{ status_label.get(a.status, a.status) }}
+          </span>
+        </div>
+      </div>
+
+      {% if a.profile %}
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;padding:16px;background:rgba(20,184,166,0.04);border-radius:12px;">
+        <div>
+          <small style="color:#94a3b8;display:block;">Pengalaman</small>
+          <strong style="color:#0f172a;">{{ a.profile.experience_years }} tahun</strong>
+        </div>
+        <div>
+          <small style="color:#94a3b8;display:block;">Pendidikan</small>
+          <strong style="color:#0f172a;">{{ a.profile.education or '-' }}</strong>
+        </div>
+        <div>
+          <small style="color:#94a3b8;display:block;">Gaji Min</small>
+          <strong style="color:#0f172a;">{% if a.profile.expected_salary_min %}Rp {{ "{:,.0f}".format(a.profile.expected_salary_min|int) }}{% else %}-{% endif %}</strong>
+        </div>
+        <div>
+          <small style="color:#94a3b8;display:block;">Lokasi</small>
+          <strong style="color:#0f172a;">{{ a.profile.location or '-' }}</strong>
+        </div>
+        {% if a.profile.skills %}
+        <div style="grid-column:1/-1;margin-top:8px;">
+          <small style="color:#94a3b8;display:block;margin-bottom:4px;">Keahlian</small>
+          <div class="flex flex-wrap gap-1">
+            {% for s in a.profile.skills[:8] %}
+              <span class="skill-badge skill-badge--primary" style="font-size:0.7rem;background:rgba(20,184,166,0.1);color:#0D9488;border-color:#14B8A6;">{{ s }}</span>
+            {% endfor %}
+            {% if a.profile.skills|length > 8 %}
+              <span class="text-muted text-xs" style="color:#94a3b8;">+{{ a.profile.skills|length - 8 }} lagi</span>
+            {% endif %}
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+        <button class="btn btn-outline btn-sm" onclick="updateStatus('{{ a.id }}', 'reviewed')">
+          <i class="bi bi-check2 mr-2"></i>Tandai Ditinjau
+        </button>
+        <button class="btn btn-success btn-sm" onclick="updateStatus('{{ a.id }}', 'accepted')" style="background:linear-gradient(135deg,#14B8A6,#0D9488);border:none;">
+          <i class="bi bi-check-circle mr-2"></i>Terima
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="updateStatus('{{ a.id }}', 'rejected')">
+          <i class="bi bi-x-circle mr-2"></i>Tolak
+        </button>
+        <button class="btn btn-ghost btn-sm" style="border:1px solid #14B8A6;color:#14B8A6;" onclick='openChat("{{ a.user_id }}", "{{ (a.profile.full_name if a.profile else a.username)|e }}")'>
+          <i class="bi bi-chat-dots mr-2"></i>Chat
+        </button>
+      </div>
+
+      {% if a.cover_letter %}
+      <div style="padding:12px;background:#f8fafc;border-radius:8px;border:1px solid #f1f5f9;margin-bottom:12px;">
+        <small class="font-semibold" style="color:#475569;"><i class="bi bi-envelope mr-2"></i>Cover Letter:</small>
+        <p style="margin:4px 0 0;font-size:0.85rem;color:#64748b;white-space:pre-wrap;">{{ a.cover_letter }}</p>
+      </div>
+      {% endif %}
+
+      {% if a.cv_filename %}
+      <div>
+        <a href="/download-cv/{{ a.id }}" class="btn btn-ghost btn-sm">
+          <i class="bi bi-download mr-2"></i> Unduh CV
+        </a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<style>
+.chat-modal-overlay {
+  position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:9999;
+  display:none; align-items:center; justify-content:center;
+}
+.chat-modal { width:420px; max-height:560px; background:#fff; border-radius:16px; display:flex; flex-direction:column; box-shadow:0 20px 60px rgba(0,0,0,0.2); overflow:hidden; }
+.chat-modal-header { padding:16px 20px; border-bottom:1px solid #f1f5f9; display:flex; align-items:center; justify-content:space-between; }
+.chat-modal-header h5 { margin:0; font-size:0.95rem; font-weight:700; color:#0f172a; }
+.chat-modal-header button { background:none; border:none; font-size:1.2rem; cursor:pointer; color:#94a3b8; padding:4px; }
+.chat-messages { flex:1; overflow-y:auto; padding:16px 20px; display:flex; flex-direction:column; gap:10px; min-height:280px; }
+.chat-msg { max-width:80%; padding:10px 14px; border-radius:12px; font-size:0.85rem; line-height:1.5; }
+.chat-msg--sent { align-self:flex-end; background:linear-gradient(135deg,#14B8A6,#0D9488); color:#fff; border-bottom-right-radius:4px; }
+.chat-msg--received { align-self:flex-start; background:#f1f5f9; color:#1e293b; border-bottom-left-radius:4px; }
+.chat-msg-time { font-size:0.6rem; opacity:0.7; margin-top:4px; display:block; }
+.chat-input-area { padding:12px 20px 16px; border-top:1px solid #f1f5f9; display:flex; gap:8px; }
+.chat-input-area input { flex:1; border:1px solid #e2e8f0; border-radius:10px; padding:10px 14px; font-size:0.85rem; outline:none; }
+.chat-input-area input:focus { border-color:#14B8A6; }
+.chat-input-area button { background:#14B8A6; color:#fff; border:none; border-radius:10px; padding:10px 16px; cursor:pointer; font-size:0.85rem; font-weight:600; }
+.chat-input-area button:hover { background:#0D9488; }
+.chat-empty { color:#94a3b8; text-align:center; padding:40px; font-size:0.85rem; }
+</style>
+
+<div class="chat-modal-overlay" id="chatOverlay" onclick="if(event.target===this)closeChat()">
+  <div class="chat-modal">
+    <div class="chat-modal-header">
+      <h5><i class="bi bi-chat-dots mr-2" style="color:#14B8A6;"></i> <span id="chatUserName">Chat</span></h5>
+      <button onclick="closeChat()">&times;</button>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+      <div class="chat-empty">Pilih pelamar untuk memulai chat</div>
+    </div>
+    <div class="chat-input-area">
+      <input type="text" id="chatInput" placeholder="Ketik pesan..." onkeydown="if(event.key==='Enter')sendChat()">
+      <button onclick="sendChat()"><i class="bi bi-send-fill"></i></button>
+    </div>
+  </div>
+</div>
+
+<script>
+let chatApplicantId = null;
+let chatVacancyId = '{{ vacancy.id }}';
+let chatPollTimer = null;
+
+function openChat(applicantId, applicantName) {
+  chatApplicantId = applicantId;
+  document.getElementById('chatUserName').textContent = applicantName || 'Pelamar #' + applicantId;
+  document.getElementById('chatOverlay').style.display = 'flex';
+  document.getElementById('chatInput').value = '';
+  document.getElementById('chatInput').focus();
+  loadChatMessages();
+  if (chatPollTimer) clearInterval(chatPollTimer);
+  chatPollTimer = setInterval(loadChatMessages, 4000);
+}
+
+function closeChat() {
+  document.getElementById('chatOverlay').style.display = 'none';
+  if (chatPollTimer) { clearInterval(chatPollTimer); chatPollTimer = null; }
+}
+
+async function loadChatMessages() {
+  if (!chatApplicantId) return;
+  try {
+    const res = await fetch('/employer/api/messages/' + chatApplicantId + '/' + chatVacancyId);
+    const data = await res.json();
+    const container = document.getElementById('chatMessages');
+    if (!data.messages || data.messages.length === 0) {
+      container.innerHTML = '<div class="chat-empty">Belum ada pesan. Kirim pesan pertama!</div>';
+      return;
+    }
+    container.innerHTML = data.messages.map(m => {
+      const isSent = m.sender_id == {{ current_user.id }};
+      const time = m.created_at ? m.created_at.slice(11, 16) : '';
+      return '<div class="chat-msg chat-msg--' + (isSent ? 'sent' : 'received') + '">' +
+        m.message +
+        '<span class="chat-msg-time">' + time + '</span></div>';
+    }).join('');
+    container.scrollTop = container.scrollHeight;
+  } catch(e) { console.error('Chat load error:', e); }
+}
+
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg || !chatApplicantId) return;
+  input.value = '';
+  try {
+    await fetch('/employer/api/messages/send', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({vacancy_id: chatVacancyId, receiver_id: chatApplicantId, message: msg})
+    });
+    loadChatMessages();
+  } catch(e) { console.error('Chat send error:', e); }
+}
+
+async function updateStatus(appId, status) {
+  if (!confirm('Ubah status lamaran ini?')) return;
+  const res = await fetch('/employer/api/applications/' + appId + '/status', {
+    method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({status})
+  });
+  if (res.ok) location.reload();
+  else alert('Gagal mengupdate status.');
+}
+</script>
+{% endblock %}

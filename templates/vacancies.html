@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}Lowongan Pekerjaan - JobMatch{% endblock %}
+{% block page_content %}
+<div class="container py-6">
+  <h2 class="page-header__title mb-2">Lowongan Pekerjaan</h2>
+  <p class="text-muted mb-4">{{ vacancies|length }} dari perusahaan · {{ clean_total }} lowongan dari JobStreet</p>
+
+  <form method="GET" action="{{ url_for('list_vacancies') }}" class="mb-4">
+    <div class="flex gap-2">
+      <input type="text" name="search" class="form-input" placeholder="Cari lowongan..." value="{{ search }}" style="flex:1">
+      <button class="btn btn-primary" type="submit"><i class="bi bi-search me-1"></i> Cari</button>
+    </div>
+  </form>
+
+  {% if search %}
+  <div class="alert alert-info mb-4" style="padding:var(--space-2) var(--space-3);font-size:0.9rem">
+    <i class="bi bi-info-circle me-1"></i> Hasil pencarian untuk "<strong>{{ search }}</strong>"
+  </div>
+  {% endif %}
+
+  {% if vacancies %}
+  <div class="flex items-center gap-2 mb-4">
+    <i class="bi bi-building" style="color:var(--primary)"></i>
+    <h5 class="h5 mb-0">Lowongan Perusahaan</h5>
+    <span class="badge badge-primary">{{ vacancies|length }}</span>
+  </div>
+  <div class="grid grid-cols-3 gap-4 mb-6">
+    {% for v in vacancies %}
+    <div class="card flex flex-col">
+      <div class="card-body flex flex-col">
+        <h5 class="font-bold mb-1">
+          {{ v.job_title }}
+          {% if not v.historical %}
+            <span class="badge badge-success ms-1" style="font-size:0.55rem;vertical-align:middle">Baru</span>
+          {% endif %}
+        </h5>
+        <p class="text-muted mb-2"><i class="bi bi-building me-1"></i>{{ v.company }}</p>
+        <div class="mb-3">
+          {% if v.categorized_skills is defined and v.categorized_skills %}
+            {% for cat, skills in v.categorized_skills.items() %}
+            <div class="mb-1">
+              <small class="text-muted font-semibold d-block" style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.3px">{{ cat }}</small>
+              <div>
+              {% for s in skills %}
+                <span class="skill-badge me-1 mb-1" style="font-size:0.7rem">{{ s }}</span>
+              {% endfor %}
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+            {% for skill in (v.skills.split(',') if v.skills is string else v.skills) %}
+            <span class="skill-badge me-1 mb-1">{{ skill.strip() if skill is string else skill }}</span>
+            {% endfor %}
+          {% endif %}
+        </div>
+        <div class="mt-auto">
+          <div class="flex flex-wrap gap-2 mb-3 text-sm text-muted">
+            {% if v.job_level %}<span><i class="bi bi-bar-chart me-1"></i>{{ v.job_level }}</span>{% endif %}
+            {% if v.job_type %}<span><i class="bi bi-clock me-1"></i>{{ v.job_type }}</span>{% endif %}
+            {% if v.location %}<span><i class="bi bi-geo-alt me-1"></i>{{ v.location }}</span>{% endif %}
+          </div>
+          <a href="/vacancies/{{ v.id }}" class="btn btn-primary btn-block">Lihat Detail</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if clean_jobs %}
+  <div class="flex items-center gap-2 mb-4">
+    <i class="bi bi-database" style="color:var(--success)"></i>
+    <h5 class="h5 mb-0">Lowongan dari Database</h5>
+    <span class="badge badge-success">{{ clean_total }}</span>
+  </div>
+  <div class="grid grid-cols-3 gap-4">
+    {% for j in clean_jobs %}
+    <div class="card flex flex-col">
+      <div class="card-body flex flex-col">
+        <h5 class="font-bold mb-1">{{ j.job_title }}</h5>
+        {% if j.company %}
+        <p class="text-muted mb-2"><i class="bi bi-building me-1"></i>{{ j.company }}</p>
+        {% endif %}
+        {% if j.description %}
+        <p class="text-sm text-muted mb-2" style="line-height:1.5">
+          {{ j.description[:200] }}{% if j.description|length > 200 %}...{% endif %}
+        </p>
+        {% endif %}
+        <div class="mb-3">
+          {% for cat, skills in j.categorized_skills.items() %}
+          <div class="mb-1">
+            <small class="text-muted font-semibold d-block" style="font-size:0.65rem;text-transform:uppercase;letter-spacing:0.3px">{{ cat }}</small>
+            <div>
+            {% for s in skills[:6] %}
+              <span class="skill-badge me-1 mb-1" style="font-size:0.7rem">{{ s }}</span>
+            {% endfor %}
+            {% if skills|length > 6 %}
+              <span class="skill-badge skill-badge--more">+{{ skills|length - 6 }}</span>
+            {% endif %}
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+        <div class="mt-auto">
+          <div class="flex flex-wrap gap-2 mb-2 text-sm text-muted">
+            {% if j.location %}<span><i class="bi bi-geo-alt me-1"></i>{{ j.location }}</span>{% endif %}
+            {% if j.employment %}<span><i class="bi bi-clock me-1"></i>{{ j.employment }}</span>{% endif %}
+            {% if j.salary_min or j.salary_max %}<span><i class="bi bi-currency-dollar me-1"></i>{{ j.salary_min }}-{{ j.salary_max }}</span>{% endif %}
+          </div>
+          {% if j.job_url %}
+          <a href="{{ j.job_url }}" target="_blank" class="btn btn-primary btn-block">
+            <i class="bi bi-box-arrow-up-right me-1"></i>Lihat di JobStreet
+          </a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if not vacancies and not clean_jobs %}
+  <div class="alert alert-info">Belum ada lowongan ditemukan.</div>
+  {% endif %}
+</div>
+{% endblock %}

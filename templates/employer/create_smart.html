@@ -1,0 +1,737 @@
+{% extends "employer/base_employer.html" %}
+{% block title %}Buat Cerdas Lowongan{% endblock %}
+{% block page_title %}Buat Cerdas{% endblock %}
+{% block breadcrumb %}Buat Cerdas{% endblock %}
+
+{% block head %}
+<style>
+.autocomplete-dropdown {
+  position: absolute; top: 100%; left: 0; right: 0; z-index: 100;
+  background: white; border: 2px solid #14B8A6; border-top: none;
+  border-radius: 0 0 10px 10px; max-height: 240px; overflow-y: auto;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+}
+.autocomplete-item {
+  padding: 0.6rem 1rem; cursor: pointer; font-size: 0.9rem;
+  border-bottom: 1px solid #f0f0f0; transition: background 0.15s;
+}
+.autocomplete-item:hover, .autocomplete-item.active {
+  background: rgba(20,184,166,0.08); color: #14B8A6;
+}
+.autocomplete-item .sub {
+  font-size: 0.75rem; color: #64748b; margin-left: 0.5rem;
+}
+.custom-skill-input-wrap {
+  display: flex; gap: 0.5rem; align-items: center;
+  background: #f9fafb; border: 2px dashed #e2e8f0;
+  border-radius: 12px; padding: 1rem; margin-top: 1rem;
+}
+.custom-skill-input-wrap input {
+  flex: 1; border: none; background: transparent;
+  padding: 0.5rem; font-size: 0.9rem; outline: none;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+  <div>
+    <p style="color:#64748b;font-size:0.9rem;margin:0;">Pembuatan lowongan berbantuan Knowledge Graph</p>
+  </div>
+</div>
+
+<div class="steps" id="stepIndicator" style="margin-bottom:24px;">
+  <div class="steps__group">
+    <div class="text-center">
+      <div class="step-dot steps__dot steps__dot--active" data-step="1">1</div>
+      <div class="step-label steps__label steps__label--active">Judul</div>
+    </div>
+  </div>
+  <div class="step-line steps__line" data-connector="1-2"></div>
+  <div class="steps__group">
+    <div class="text-center">
+      <div class="step-dot steps__dot" data-step="2">2</div>
+      <div class="step-label steps__label">Analisis</div>
+    </div>
+  </div>
+  <div class="step-line steps__line" data-connector="2-3"></div>
+  <div class="steps__group">
+    <div class="text-center">
+      <div class="step-dot steps__dot" data-step="3">3</div>
+      <div class="step-label steps__label">Keahlian</div>
+    </div>
+  </div>
+  <div class="step-line steps__line" data-connector="3-4"></div>
+  <div class="steps__group">
+    <div class="text-center">
+      <div class="step-dot steps__dot" data-step="4">4</div>
+      <div class="step-label steps__label">Graph</div>
+    </div>
+  </div>
+  <div class="step-line steps__line" data-connector="4-5"></div>
+  <div class="steps__group">
+    <div class="text-center">
+      <div class="step-dot steps__dot" data-step="5">5</div>
+      <div class="step-label steps__label">Validasi</div>
+    </div>
+  </div>
+  <div class="step-line steps__line" data-connector="5-6"></div>
+  <div class="steps__group">
+    <div class="text-center">
+      <div class="step-dot steps__dot" data-step="6">6</div>
+      <div class="step-label steps__label">Talenta</div>
+    </div>
+  </div>
+  <div class="step-line steps__line" data-connector="6-7"></div>
+  <div class="steps__group">
+    <div class="text-center">
+      <div class="step-dot steps__dot" data-step="7">7</div>
+      <div class="step-label steps__label">Simpan</div>
+    </div>
+  </div>
+</div>
+
+<div class="card-new">
+  <div class="card-new-body">
+
+    <div class="step-panel active" id="step1">
+      <h3 class="dashboard-section-title"><i class="bi bi-type" style="color:#14B8A6;"></i>Masukkan Judul Pekerjaan</h3>
+      <p style="color:#64748b;font-size:0.9rem;margin-bottom:16px;">Masukkan judul pekerjaan untuk dianalisis terhadap knowledge graph dari 5.001+ pekerjaan historis.</p>
+      <div style="display:grid;grid-template-columns:3fr 1fr;gap:16px;align-items:end;">
+        <div class="form-group" style="margin:0;position:relative;">
+          <label class="form-label">Judul Pekerjaan <span style="color:#ef4444;">*</span></label>
+          <input type="text" class="form-input form-input-lg" id="jobTitleInput"
+            placeholder="Ketik judul pekerjaan... Cth: Software Engineer"
+            autofocus autocomplete="off">
+          <div id="titleDropdown" class="autocomplete-dropdown" style="display:none;"></div>
+        </div>
+        <div>
+          <button class="btn btn-primary btn-block btn-lg" id="analyzeBtn" onclick="analyzeTitle()" style="background:linear-gradient(135deg,#14B8A6,#0D9488);border:none;box-shadow:0 2px 8px rgba(20,184,166,0.25);">
+            <i class="bi bi-search mr-2"></i>Analisis
+          </button>
+        </div>
+      </div>
+      <div id="analyzeSpinner" class="text-center mt-4" style="display:none;">
+        <div style="text-align:center;color:#94a3b8;"><i class="bi bi-arrow-repeat spinner-icon" style="font-size:2rem;display:block;margin-bottom:0.5rem;"></i><p>Menganalisis knowledge graph...</p></div>
+      </div>
+    </div>
+
+    <div class="step-panel" id="step2" style="display:none;">
+      <h3 class="dashboard-section-title"><i class="bi bi-graph-up" style="color:#14B8A6;"></i>Analisis Knowledge Graph</h3>
+      <div id="analysisResults">
+        <div style="text-align:center;color:#94a3b8;padding:24px;">Belum ada analisis. Masukkan judul pekerjaan dan klik Analisis.</div>
+      </div>
+      <div class="mt-4" id="analysisGraphContainer" style="display:none;width:100%;height:320px;border:1px solid #e2e8f0;border-radius:12px;background:white;overflow:hidden;"></div>
+    </div>
+
+    <div class="step-panel" id="step3" style="display:none;">
+      <h3 class="dashboard-section-title"><i class="bi bi-list-check" style="color:#14B8A6;"></i>Pilih Keahlian</h3>
+      <p style="color:#64748b;font-size:0.9rem;margin-bottom:12px;">Klik untuk memilih keahlian. Keahlian yang dipilih akan disertakan dalam lowongan.</p>
+      <div id="skillSelectionArea" class="mb-4">
+        <div style="text-align:center;color:#94a3b8;padding:24px;">Selesaikan analisis terlebih dahulu.</div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-outline btn-sm" onclick="selectAllSkills()"><i class="bi bi-check-all mr-2"></i>Pilih Semua</button>
+        <button class="btn btn-outline btn-sm" onclick="deselectAllSkills()"><i class="bi bi-x mr-2"></i>Hapus Semua</button>
+      </div>
+      <div class="custom-skill-input-wrap">
+        <input type="text" id="customSkillInput" placeholder="Tambah keahlian kustom... Mis: Python, Docker, AWS" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomSkill();}">
+        <button class="btn btn-primary btn-sm" onclick="addCustomSkill()" style="background:linear-gradient(135deg,#14B8A6,#0D9488);border:none;white-space:nowrap;"><i class="bi bi-plus-lg mr-2"></i>Tambah</button>
+      </div>
+      
+    </div>
+
+    <div class="step-panel" id="step4" style="display:none;">
+      <h3 class="dashboard-section-title"><i class="bi bi-diagram-3" style="color:#14B8A6;"></i>Visualisasi Knowledge Graph</h3>
+      <p style="color:#64748b;font-size:0.9rem;margin-bottom:12px;">Graph interaktif yang menunjukkan hubungan antara keahlian yang dipilih dan pekerjaan terkait.</p>
+      <div style="width:100%;height:400px;border:1px solid #e2e8f0;border-radius:12px;background:white;overflow:hidden;" id="graphContainer"></div>
+      <div style="display:flex;gap:8px;justify-content:center;margin-top:12px;">
+        <button class="btn btn-sm btn-ghost" onclick="zoomIn()"><i class="bi bi-zoom-in"></i></button>
+        <button class="btn btn-sm btn-ghost" onclick="zoomOut()"><i class="bi bi-zoom-out"></i></button>
+        <button class="btn btn-sm btn-ghost" onclick="resetGraphView()"><i class="bi bi-arrow-repeat mr-2"></i>Atur Ulang</button>
+      </div>
+    </div>
+
+    <div class="step-panel" id="step5" style="display:none;">
+      <h3 class="dashboard-section-title"><i class="bi bi-shield-check" style="color:#14B8A6;"></i>Validasi Keahlian</h3>
+      <p style="color:#64748b;font-size:0.9rem;margin-bottom:16px;">Validasi keahlian yang dipilih terhadap knowledge graph.</p>
+      <div id="validationArea">
+        <div style="text-align:center;color:#94a3b8;padding:24px;">Pilih keahlian terlebih dahulu.</div>
+      </div>
+    </div>
+
+    <div class="step-panel" id="step6" style="display:none;">
+      <h3 class="dashboard-section-title"><i class="bi bi-people" style="color:#14B8A6;"></i>Ketersediaan Talenta</h3>
+      <p style="color:#64748b;font-size:0.9rem;margin-bottom:16px;">Perkiraan kumpulan kandidat berdasarkan analisis knowledge graph.</p>
+      <div id="talentArea">
+        <div style="text-align:center;color:#94a3b8;padding:24px;">Selesaikan validasi terlebih dahulu.</div>
+      </div>
+    </div>
+
+    <div class="step-panel" id="step7" style="display:none;">
+      <h3 class="dashboard-section-title"><i class="bi bi-save" style="color:#14B8A6;"></i>Simpan Lowongan</h3>
+      <p style="color:#64748b;font-size:0.9rem;margin-bottom:16px;">Isi detail yang tersisa dan simpan lowongan Anda ke knowledge graph.</p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="form-group">
+          <label class="form-label">Judul Pekerjaan</label>
+          <input type="text" class="form-input" id="finalJobTitle" readonly>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Perusahaan <span style="color:#ef4444;">*</span></label>
+          <input type="text" class="form-input" id="finalCompany" value="{{ company_name }}" readonly>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Deskripsi Pekerjaan</label>
+        <textarea class="form-textarea" id="finalDescription" rows="3" placeholder="Deskripsi pekerjaan, tanggung jawab, kualifikasi..."></textarea>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;">
+        <div class="form-group">
+          <label class="form-label">Level Pekerjaan</label>
+          <select class="form-select" id="finalLevel">
+            <option value="">Pilih level</option>
+            <option>Entry</option>
+            <option>Mid Senior</option>
+            <option>Senior</option>
+            <option>Lead</option>
+            <option>Manager</option>
+            <option>Director</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tipe Pekerjaan</label>
+          <select class="form-select" id="finalType">
+            <option value="">Pilih tipe</option>
+            <option>Full-time</option>
+            <option>Part-time</option>
+            <option>Contract</option>
+            <option>Internship</option>
+            <option>Remote</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Lokasi</label>
+          <input type="text" class="form-input" id="finalLocation" placeholder="cth. Jakarta">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="form-group">
+          <label class="form-label">Gaji Min</label>
+          <input type="number" class="form-input" id="finalSalaryMin" placeholder="Cth: 5000000" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Gaji Max</label>
+          <input type="number" class="form-input" id="finalSalaryMax" placeholder="Cth: 15000000" min="0">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Keahlian yang Disertakan</label>
+        <div id="finalSkillsList" class="flex flex-wrap gap-2"></div>
+      </div>
+      <button class="btn btn-success btn-block btn-lg" onclick="saveVacancy()" style="background:linear-gradient(135deg,#14B8A6,#0D9488);border:none;box-shadow:0 2px 8px rgba(20,184,166,0.25);">
+        <i class="bi bi-check-lg mr-2"></i>Simpan Lowongan
+      </button>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;margin-top:20px;padding-top:20px;border-top:1px solid #f1f5f9;">
+      <button class="btn btn-ghost" id="prevBtn" onclick="prevStep()" style="display:none;">
+        <i class="bi bi-arrow-left mr-2"></i> Kembali
+      </button>
+      <div style="margin-left:auto;">
+        <button class="btn btn-primary" id="nextBtn" onclick="nextStep()" style="background:linear-gradient(135deg,#14B8A6,#0D9488);border:none;">
+          Lanjut <i class="bi bi-arrow-right ml-2"></i>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.28.1/cytoscape.min.js"></script>
+<script>
+let currentStep = 1;
+const totalSteps = 7;
+let analysisData = null;
+let selectedSkills = [];
+let allSkills = [];
+let cy = null;
+
+function showStep(step) {
+  document.querySelectorAll('.step-panel').forEach(p => p.style.display = 'none');
+  document.getElementById(`step${step}`).style.display = 'block';
+  document.querySelectorAll('.step-dot').forEach(c => {
+    c.classList.remove('active');
+    c.classList.remove('steps__dot--active');
+    c.classList.remove('steps__dot--completed');
+    const s = parseInt(c.dataset.step);
+    if (s === step) { c.classList.add('active'); c.classList.add('steps__dot--active'); }
+    else if (s < step) { c.classList.add('completed'); c.classList.add('steps__dot--completed'); }
+  });
+  document.querySelectorAll('.step-line').forEach(c => {
+    const [from, to] = c.dataset.connector.split('-').map(Number);
+    const done = to <= step;
+    c.classList.toggle('completed', done);
+    c.classList.toggle('steps__line--completed', done);
+  });
+  document.querySelectorAll('.step-label').forEach(c => {
+    const parent = c.closest('.steps__group');
+    if (parent) {
+      const dot = parent.querySelector('.step-dot');
+      if (dot) {
+        const s = parseInt(dot.dataset.step);
+        c.classList.toggle('steps__label--active', s === step);
+      }
+    }
+  });
+  document.getElementById('prevBtn').style.display = step > 1 ? 'inline-flex' : 'none';
+  const nextBtn = document.getElementById('nextBtn');
+  if (step === totalSteps) {
+    nextBtn.style.display = 'none';
+  } else {
+    nextBtn.style.display = 'inline-flex';
+    nextBtn.innerHTML = 'Lanjut <i class="bi bi-arrow-right ml-2"></i>';
+  }
+  currentStep = step;
+  if (step === 4) renderGraph();
+  if (step === 5) validateSkills();
+  if (step === 6) estimateTalent();
+  if (step === 7) prepareSaveStep();
+}
+
+function nextStep() {
+  if (currentStep === 1 && !analysisData) { alert('Silakan analisis judul pekerjaan terlebih dahulu.'); return; }
+  if (currentStep === 2 && !analysisData) { alert('Silakan selesaikan analisis terlebih dahulu.'); return; }
+  if (currentStep === 3 && selectedSkills.length === 0) { alert('Silakan pilih setidaknya satu keahlian.'); return; }
+  if (currentStep + 1 <= totalSteps) showStep(currentStep + 1);
+}
+
+function prevStep() {
+  if (currentStep > 1) showStep(currentStep - 1);
+}
+
+let autocompleteTimer = null;
+let selectedTitleIndex = -1;
+
+document.addEventListener('DOMContentLoaded', function() {
+  const input = document.getElementById('jobTitleInput');
+  const dropdown = document.getElementById('titleDropdown');
+
+  input.addEventListener('input', function() {
+    clearTimeout(autocompleteTimer);
+    dropdown.style.display = 'none';
+    selectedTitleIndex = -1;
+    const q = this.value.trim();
+    if (q.length < 2) return;
+    autocompleteTimer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/employer/api/search-titles?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        if (data.length === 0) { dropdown.style.display = 'none'; return; }
+        dropdown.innerHTML = data.map((item, i) =>
+          `<div class="autocomplete-item" data-index="${i}" onclick="selectTitle('${item.job_title.replace(/'/g, "\\'")}')">
+            ${item.job_title}
+            ${item.company ? `<span class="sub">${item.company}</span>` : ''}
+            ${item.location ? `<span class="sub">${item.location}</span>` : ''}
+          </div>`
+        ).join('');
+        dropdown.style.display = 'block';
+      } catch(e) { console.error(e); }
+    }, 300);
+  });
+
+  input.addEventListener('keydown', function(e) {
+    const items = dropdown.querySelectorAll('.autocomplete-item');
+    if (items.length === 0) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      selectedTitleIndex = Math.min(selectedTitleIndex + 1, items.length - 1);
+      updateActiveItem(items);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      selectedTitleIndex = Math.max(selectedTitleIndex - 1, -1);
+      updateActiveItem(items);
+    } else if (e.key === 'Enter' && selectedTitleIndex >= 0) {
+      e.preventDefault();
+      items[selectedTitleIndex].click();
+    }
+  });
+
+  document.addEventListener('click', function(e) {
+    if (!input.contains(e.target) && !dropdown.contains(e.target)) dropdown.style.display = 'none';
+  });
+});
+
+function updateActiveItem(items) {
+  items.forEach((item, i) => item.classList.toggle('active', i === selectedTitleIndex));
+  if (selectedTitleIndex >= 0 && items[selectedTitleIndex]) {
+    document.getElementById('jobTitleInput').value =
+      items[selectedTitleIndex].textContent.replace(/\s+\S+$/, '').replace(/\s+$/, '');
+  }
+}
+
+function selectTitle(title) {
+  document.getElementById('jobTitleInput').value = title;
+  document.getElementById('titleDropdown').style.display = 'none';
+  setTimeout(analyzeTitle, 100);
+}
+
+let customSkills = [];
+
+function addCustomSkill() {
+  const input = document.getElementById('customSkillInput');
+  const raw = input.value.trim();
+  if (!raw) return;
+  const skills = raw.split(',').map(s => s.trim().toLowerCase()).filter(s => s);
+  input.value = '';
+  skills.forEach(skill => {
+    if (selectedSkills.includes(skill)) return;
+    selectedSkills.push(skill);
+    customSkills.push(skill);
+  });
+  displaySkillsForSelection();
+}
+
+function removeCustomSkill(skill) {
+  selectedSkills = selectedSkills.filter(s => s !== skill);
+  customSkills = customSkills.filter(s => s !== skill);
+  displaySkillsForSelection();
+}
+
+
+async function analyzeTitle() {
+  const title = document.getElementById('jobTitleInput').value.trim();
+  if (!title) { alert('Silakan masukkan judul pekerjaan.'); return; }
+
+  document.getElementById('analyzeSpinner').style.display = 'block';
+  document.getElementById('analyzeBtn').disabled = true;
+
+  try {
+    const res = await fetch('/employer/api/analyze-title', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title })
+    });
+    analysisData = await res.json();
+    if (analysisData.error) { alert(analysisData.error); return; }
+
+    displayAnalysis();
+    allSkills = analysisData.recommended_skills || [];
+    selectedSkills = allSkills.map(s => s.skill);
+    displaySkillsForSelection();
+    document.getElementById('finalJobTitle').value = title;
+  } catch (e) {
+    alert('Analisis gagal: ' + e.message);
+  } finally {
+    document.getElementById('analyzeSpinner').style.display = 'none';
+    document.getElementById('analyzeBtn').disabled = false;
+    showStep(2);
+  }
+}
+
+let analysisCy = null;
+
+function displayAnalysis() {
+  const area = document.getElementById('analysisResults');
+  const skills = analysisData.recommended_skills || [];
+  const related = analysisData.related_titles || [];
+
+  let skillsHtml = skills.slice(0, 10).map(s => `
+    <div class="flex items-center justify-between py-2" style="border-bottom:1px solid #f1f5f9;">
+      <span class="font-semibold">${s.skill}</span>
+      <div class="flex items-center gap-3">
+        <small style="color:#94a3b8;">${s.frequency} pekerjaan</small>
+        <div style="width:80px;height:8px;background:#e2e8f0;border-radius:4px;overflow:hidden;">
+          <div style="width:${s.percentage}%;height:100%;background:linear-gradient(90deg,#14B8A6,#0D9488);border-radius:4px;"></div>
+        </div>
+        <span class="badge badge-primary" style="background:rgba(20,184,166,0.1);color:#14B8A6;border-color:#14B8A6;">${s.percentage}%</span>
+      </div>
+    </div>
+  `).join('');
+
+  let relatedHtml = related.slice(0, 8).map(t => `
+    <span class="skill-pill-modern" style="cursor:default;background:rgba(99,102,241,0.1);border-color:#6366f1;color:#6366f1;">
+      ${t.title} <span class="badge badge-neutral ml-2" style="font-size:0.65rem;">${t.count}</span>
+    </span>
+  `).join('');
+
+  area.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div>
+        <h5 class="font-semibold mb-3" style="color:#0f172a;"><i class="bi bi-star-fill mr-2" style="color:#f59e0b;"></i> Keahlian yang Direkomendasikan <span class="badge badge-neutral ml-2">${skills.length}</span></h5>
+        <div style="max-height:400px;overflow-y:auto;">${skillsHtml || '<p style="color:#94a3b8;">Tidak ada keahlian ditemukan.</p>'}</div>
+      </div>
+      <div>
+        <div class="mb-4">
+          <h5 class="font-semibold mb-3" style="color:#0f172a;"><i class="bi bi-diagram-2 mr-2" style="color:#14B8A6;"></i> Judul Pekerjaan Terkait</h5>
+          <div class="flex flex-wrap gap-2">${relatedHtml || '<p style="color:#94a3b8;">Tidak ada judul terkait.</p>'}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card__value" style="color:#14B8A6;">${(analysisData.confidence * 100).toFixed(0)}%</div>
+          <div class="stat-card__label">Skor Keyakinan Graph</div>
+          <div class="mt-2" style="height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden;">
+            <div style="width:${analysisData.confidence * 100}%;height:100%;background:linear-gradient(90deg,#14B8A6,#0D9488);border-radius:3px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  renderAnalysisGraph();
+}
+
+function renderAnalysisGraph() {
+  const container = document.getElementById('analysisGraphContainer');
+  const elements = analysisData.graph_elements || { nodes: [], edges: [] };
+  if (!elements.nodes || elements.nodes.length < 2) { container.style.display = 'none'; return; }
+  container.style.display = 'block';
+  if (analysisCy) analysisCy.destroy();
+
+  analysisCy = cytoscape({
+    container: container,
+    elements: elements,
+    style: [
+      { selector: 'node[type="job"]', style: { 'background-color': '#14B8A6', 'label': 'data(label)', 'color': '#14B8A6', 'font-size': '12px', 'font-weight': 'bold', 'text-valign': 'bottom', 'text-halign': 'center', 'width': 60, 'height': 60, 'shape': 'round-rectangle' } },
+      { selector: 'node[type="skill"]', style: { 'background-color': '#6366f1', 'label': 'data(label)', 'color': '#6366f1', 'font-size': '11px', 'font-weight': '600', 'text-valign': 'bottom', 'text-halign': 'center', 'width': 40, 'height': 40 } },
+      { selector: 'node[type="related_job"]', style: { 'background-color': '#f59e0b', 'label': 'data(label)', 'color': '#f59e0b', 'font-size': '10px', 'text-valign': 'bottom', 'text-halign': 'center', 'width': 36, 'height': 36, 'shape': 'diamond' } },
+      { selector: 'edge', style: { 'width': 2, 'line-color': '#cbd5e1', 'target-arrow-color': '#cbd5e1', 'target-arrow-shape': 'triangle', 'curve-style': 'bezier', 'arrow-scale': 0.6 } },
+      { selector: 'edge[label="REQUIRES_SKILL"]', style: { 'line-color': '#14B8A6', 'width': 3, 'target-arrow-color': '#14B8A6' } },
+    ],
+    layout: { name: 'cose', animate: false, nodeRepulsion: 3000, idealEdgeLength: 120 },
+    userZoomingEnabled: true, userPanningEnabled: true,
+  });
+
+  analysisCy.on('tap', 'node', function(evt) {
+    const node = evt.target;
+    const neighborIds = new Set();
+    neighborIds.add(node.id());
+    node.neighborhood().nodes().forEach(n => neighborIds.add(n.id()));
+    analysisCy.nodes().forEach(n => { n.style({ 'opacity': neighborIds.has(n.id()) ? 1 : 0.15 }); });
+    analysisCy.edges().forEach(e => {
+      const src = e.source().id(), tgt = e.target().id();
+      e.style({ 'opacity': neighborIds.has(src) && neighborIds.has(tgt) ? 1 : 0.1 });
+    });
+  });
+  analysisCy.on('tap', function(evt) {
+    if (evt.target === analysisCy) { analysisCy.nodes().style({ 'opacity': 1 }); analysisCy.edges().style({ 'opacity': 1 }); }
+  });
+}
+
+function displaySkillsForSelection() {
+  const area = document.getElementById('skillSelectionArea');
+  if (!allSkills.length && !customSkills.length) { area.innerHTML = '<p style="color:#94a3b8;">Tidak ada rekomendasi keahlian dari graph.</p>'; return; }
+  const recommendedPills = allSkills.map((s, i) => `
+    <span class="skill-pill-modern ${selectedSkills.includes(s.skill) ? 'selected' : ''}" data-idx="${i}" onclick="toggleSkill(${i})" style="background:${selectedSkills.includes(s.skill) ? 'rgba(20,184,166,0.15)' : '#f8fafc'};border-color:#14B8A6;color:#0D9488;cursor:pointer;">
+      ${s.skill} <span class="badge-pct">${s.percentage}%</span>
+      <i class="bi ${selectedSkills.includes(s.skill) ? 'bi-check-circle-fill' : 'bi-plus-circle'}" style="font-size:0.8rem;"></i>
+    </span>
+  `).join('');
+  const customPills = customSkills.map((s, i) => `
+    <span class="skill-pill-modern selected" style="background:rgba(20,184,166,0.15);border-color:#14B8A6;color:#0D9488;">
+      ${s} <span class="badge-pct" style="color:#94a3b8;">kustom</span>
+      <i class="bi bi-x-circle-fill" style="font-size:0.8rem;cursor:pointer;color:#ef4444;" onclick="removeCustomSkill('${s}')"></i>
+    </span>
+  `).join('');
+  area.innerHTML = `
+    <div class="flex flex-wrap gap-2" id="skillPills">
+      ${recommendedPills}
+      ${customPills}
+    </div>
+    <p class="mt-3 text-sm" style="color:#94a3b8;"><span id="selectedCount">${selectedSkills.length}</span>${allSkills.length ? ` dari ${allSkills.length + customSkills.length} keahlian dipilih` : ' keahlian dipilih'}</p>
+  `;
+}
+
+function toggleSkill(idx) {
+  const pill = document.querySelector(`.skill-pill-modern[data-idx="${idx}"]`);
+  if (!pill) return;
+  const skill = allSkills[idx].skill;
+  const isSelected = selectedSkills.includes(skill);
+  if (isSelected) {
+    selectedSkills = selectedSkills.filter(s => s !== skill);
+    pill.classList.remove('selected');
+    pill.querySelector('i').className = 'bi bi-plus-circle';
+  } else {
+    selectedSkills.push(skill);
+    pill.classList.add('selected');
+    pill.querySelector('i').className = 'bi bi-check-circle-fill';
+  }
+  document.getElementById('selectedCount').textContent = selectedSkills.length;
+}
+
+function selectAllSkills() {
+  selectedSkills = allSkills.map(s => s.skill);
+  document.querySelectorAll('.skill-pill-modern').forEach(p => { p.classList.add('selected'); p.querySelector('i').className = 'bi bi-check-circle-fill'; });
+  document.getElementById('selectedCount').textContent = selectedSkills.length;
+}
+
+function deselectAllSkills() {
+  selectedSkills = [];
+  customSkills = [];
+  displaySkillsForSelection();
+}
+
+async function renderGraph() {
+  const title = document.getElementById('jobTitleInput').value.trim();
+  if (!title || selectedSkills.length === 0) return;
+  const container = document.getElementById('graphContainer');
+  container.innerHTML = '<div class="text-center py-5 text-muted"><i class="bi bi-arrow-repeat spinner-icon" style="font-size:2rem;display:block;margin-bottom:0.5rem;"></i><p>Memuat graph...</p></div>';
+  try {
+    const res = await fetch('/employer/api/graph-subgraph', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title, skills: selectedSkills }) });
+    const data = await res.json();
+    const elements = data.elements || { nodes: [], edges: [] };
+    container.innerHTML = '';
+    if (cy) cy.destroy();
+    cy = cytoscape({
+      container, elements,
+      style: [
+        { selector: 'node[type="job"]', style: { 'background-color': '#14B8A6', 'label': 'data(label)', 'color': '#14B8A6', 'font-size': '12px', 'font-weight': 'bold', 'text-valign': 'bottom', 'text-halign': 'center', 'width': 60, 'height': 60, 'shape': 'round-rectangle' } },
+        { selector: 'node[type="skill"]', style: { 'background-color': '#6366f1', 'label': 'data(label)', 'color': '#6366f1', 'font-size': '11px', 'font-weight': '600', 'text-valign': 'bottom', 'text-halign': 'center', 'width': 40, 'height': 40 } },
+        { selector: 'node[type="related_job"]', style: { 'background-color': '#f59e0b', 'label': 'data(label)', 'color': '#f59e0b', 'font-size': '10px', 'text-valign': 'bottom', 'text-halign': 'center', 'width': 36, 'height': 36, 'shape': 'diamond' } },
+        { selector: 'edge', style: { 'width': 2, 'line-color': '#cbd5e1', 'target-arrow-color': '#cbd5e1', 'target-arrow-shape': 'triangle', 'curve-style': 'bezier', 'arrow-scale': 0.7 } },
+        { selector: 'edge[label="REQUIRES_SKILL"]', style: { 'line-color': '#14B8A6', 'width': 3, 'target-arrow-color': '#14B8A6' } },
+        { selector: ':selected', style: { 'border-width': 3, 'border-color': '#14B8A6' } },
+      ],
+      layout: { name: 'cose', animate: false, nodeRepulsion: 4000, idealEdgeLength: 100 },
+      userZoomingEnabled: true, userPanningEnabled: true, boxSelectionEnabled: true,
+    });
+    cy.on('tap', 'node', function(evt) {
+      const node = evt.target, neighborIds = new Set();
+      neighborIds.add(node.id());
+      node.neighborhood().nodes().forEach(n => neighborIds.add(n.id()));
+      cy.nodes().forEach(n => { n.style({ 'opacity': neighborIds.has(n.id()) ? 1 : 0.2 }); });
+      cy.edges().forEach(e => {
+        const src = e.source().id(), tgt = e.target().id();
+        e.style({ 'opacity': neighborIds.has(src) && neighborIds.has(tgt) ? 1 : 0.1 });
+      });
+    });
+    cy.on('tap', function(evt) { if (evt.target === cy) { cy.nodes().style({ 'opacity': 1 }); cy.edges().style({ 'opacity': 1 }); } });
+  } catch (e) { container.innerHTML = `<div class="alert alert-danger">Graph render error: ${e.message}</div>`; }
+}
+
+function zoomIn() { if (cy) cy.zoom(cy.zoom() + 0.3); }
+function zoomOut() { if (cy) cy.zoom(cy.zoom() - 0.3); }
+function resetGraphView() { if (cy) { cy.zoom(1); cy.center(); cy.nodes().style({ 'opacity': 1 }); cy.edges().style({ 'opacity': 1 }); } }
+
+async function validateSkills() {
+  const title = document.getElementById('jobTitleInput').value.trim();
+  if (!title || selectedSkills.length === 0) { document.getElementById('validationArea').innerHTML = '<div class="alert alert-warning">Silakan pilih keahlian terlebih dahulu.</div>'; return; }
+  const area = document.getElementById('validationArea');
+  area.innerHTML = '<div class="text-center py-4 text-muted"><i class="bi bi-hourglass-split" style="font-size:1.5rem;display:block;margin-bottom:0.5rem;"></i></div>';
+  try {
+    const res = await fetch('/employer/api/validate-skills', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title, skills: selectedSkills }) });
+    const data = await res.json();
+    const scoreClass = data.score >= 70 ? 'score-ring--high' : data.score >= 40 ? 'score-ring--medium' : 'score-ring--low';
+    const statusIcon = data.score >= 70 ? 'bi-check-circle-fill text-success' : data.score >= 40 ? 'bi-exclamation-circle-fill text-warning' : 'bi-x-circle-fill text-danger';
+    area.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 2fr;gap:16px;">
+        <div class="text-center">
+          <div class="score-ring ${scoreClass}">${data.score}%</div>
+          <h5 class="font-semibold"><i class="${statusIcon} mr-2"></i> ${data.message}</h5>
+        </div>
+        <div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+            <div class="stat-card">
+              <div class="stat-card__value" style="color:var(--success);">${data.matching.length}</div>
+              <div class="stat-card__label">Keahlian Cocok</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-card__value" style="color:#ef4444;">${data.missing.length}</div>
+              <div class="stat-card__label">Tidak Umum</div>
+            </div>
+          </div>
+          ${data.missing.length > 0 ? `
+            <div class="alert alert-warning">
+              <i class="bi bi-lightbulb mr-2"></i>
+              <strong>Peringatan:</strong> Keahlian berikut jarang ditemukan pada posisi ini:
+              <div class="flex flex-wrap gap-1 mt-2">${data.missing.map(s => `<span class="skill-pill-modern" style="font-size:0.75rem;cursor:default;background:#FEF3C7;border-color:#F59E0B;color:#92400E;">${s}</span>`).join('')}</div>
+            </div>
+            <div class="alert alert-info">
+              <i class="bi bi-lightbulb mr-2"></i>
+              <strong>Rekomendasi:</strong>
+              <div class="flex flex-wrap gap-1 mt-2">${data.recommended.map(s => `<span class="skill-pill-modern" style="font-size:0.75rem;cursor:default;">${s}</span>`).join('')}</div>
+            </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  } catch (e) { area.innerHTML = `<div class="alert alert-danger">Kesalahan validasi: ${e.message}</div>`; }
+}
+
+async function estimateTalent() {
+  if (selectedSkills.length === 0) { document.getElementById('talentArea').innerHTML = '<div class="alert alert-warning">Silakan pilih keahlian terlebih dahulu.</div>'; return; }
+  const area = document.getElementById('talentArea');
+  area.innerHTML = '<div class="text-center py-4 text-muted"><i class="bi bi-hourglass-split" style="font-size:1.5rem;display:block;margin-bottom:0.5rem;"></i></div>';
+  try {
+    const res = await fetch('/employer/api/talent-availability', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ skills: selectedSkills }) });
+    const data = await res.json();
+    area.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 3fr;gap:16px;">
+        <div style="background:rgba(20,184,166,0.05);border:1px solid #e2e8f0;border-radius:12px;padding:20px;text-align:center;">
+          <div style="font-size:2.5rem;font-weight:700;color:#14B8A6;">${data.total_estimated}</div>
+          <div style="font-size:0.85rem;color:#64748b;font-weight:500;">Potensi Kandidat</div>
+        </div>
+        <div>
+          <h6 class="font-semibold mb-3" style="color:#0f172a;">Rincian Keahlian</h6>
+          ${(data.skills_analysis || []).map(s => `
+            <div class="flex items-center justify-between py-1" style="border-bottom:1px solid #f1f5f9;">
+              <span style="color:#475569;">${s.skill}</span>
+              <small style="color:#94a3b8;">${s.job_count} pekerjaan</small>
+            </div>
+          `).join('')}
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;">
+            ${(data.high_demand || []).length > 0 ? `<div style="background:rgba(245,158,11,0.1);border-radius:8px;padding:10px;font-size:0.8rem;border:1px solid rgba(245,158,11,0.2);"><i class="bi bi-fire mr-2" style="color:#f59e0b;"></i> <strong style="color:#92400E;">Permintaan Tinggi:</strong><br><span style="color:#475569;">${data.high_demand.join(', ')}</span></div>` : ''}
+            ${(data.rare_skills || []).length > 0 ? `<div style="background:rgba(99,102,241,0.1);border-radius:8px;padding:10px;font-size:0.8rem;border:1px solid rgba(99,102,241,0.2);"><i class="bi bi-gem mr-2" style="color:#6366f1;"></i> <strong style="color:#4338CA;">Keahlian Langka:</strong><br><span style="color:#475569;">${data.rare_skills.join(', ')}</span></div>` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+  } catch (e) { area.innerHTML = `<div class="alert alert-danger">Kesalahan: ${e.message}</div>`; }
+}
+
+function prepareSaveStep() {
+  const container = document.getElementById('finalSkillsList');
+  container.innerHTML = selectedSkills.map(s => `
+    <span class="skill-pill-modern" style="cursor:default;background:rgba(20,184,166,0.15);border-color:#14B8A6;color:#0D9488;">
+      ${s} <i class="bi bi-check-circle-fill ml-2"></i>
+    </span>
+  `).join('');
+}
+
+const originalNextStep = nextStep;
+nextStep = function() {
+  if (currentStep === 1 && !analysisData) { alert('Silakan analisis judul pekerjaan terlebih dahulu.'); return; }
+  if (currentStep === 2 && !analysisData) { alert('Silakan selesaikan analisis terlebih dahulu.'); return; }
+  if (currentStep === 3 && selectedSkills.length === 0) { alert('Silakan pilih setidaknya satu keahlian.'); return; }
+  const btn = document.getElementById('nextBtn');
+  if (currentStep + 1 <= totalSteps) {
+    btn.textContent = currentStep + 1 === totalSteps ? 'Langkah Terakhir' : 'Lanjut <i class="bi bi-arrow-right ml-2"></i>';
+    showStep(currentStep + 1);
+  }
+};
+
+async function saveVacancy() {
+  const jobTitle = document.getElementById('finalJobTitle').value;
+  const company = document.getElementById('finalCompany').value.trim();
+  const description = document.getElementById('finalDescription').value.trim();
+  const jobLevel = document.getElementById('finalLevel').value;
+  const jobType = document.getElementById('finalType').value;
+  const location = document.getElementById('finalLocation').value.trim();
+  const salaryMin = document.getElementById('finalSalaryMin').value.trim();
+  const salaryMax = document.getElementById('finalSalaryMax').value.trim();
+  if (!company) { alert('Nama perusahaan wajib diisi.'); return; }
+  try {
+    const res = await fetch('/employer/api/jobs', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ job_title: jobTitle, company, description, skills: selectedSkills.join(', '), salary_min: salaryMin, salary_max: salaryMax, job_level: jobLevel, job_type: jobType, location })
+    });
+    const data = await res.json();
+    if (data.success) { window.location.href = '/employer/vacancies/' + data.vacancy.id; }
+    else { alert(data.error || 'Gagal membuat lowongan'); }
+  } catch (e) { alert('Kesalahan: ' + e.message); }
+}
+
+document.getElementById('jobTitleInput').addEventListener('keydown', function(e) { if (e.key === 'Enter') analyzeTitle(); });
+</script>
+{% endblock %}

@@ -1,0 +1,113 @@
+{% extends "employer/base_employer.html" %}
+{% block title %}Buat Lowongan{% endblock %}
+{% block page_title %}Buat Lowongan{% endblock %}
+{% block breadcrumb %}Buat Lowongan{% endblock %}
+
+{% block content %}
+<div class="card-new" style="max-width:720px;margin:0 auto;">
+  <div class="card-new-body">
+    <h3 style="font-size:1.15rem;font-weight:700;color:#0f172a;margin-bottom:4px;">
+      <i class="bi bi-plus-circle mr-2" style="color:#14B8A6;"></i>Buat Lowongan Baru
+    </h3>
+    <p style="color:#64748b;font-size:0.85rem;margin-bottom:20px;">Isi detail untuk membuat lowongan pekerjaan dan menambahkannya ke knowledge graph.</p>
+
+    <form id="createVacancyForm">
+      <div class="form-group">
+        <label class="form-label">Judul Pekerjaan <span style="color:#ef4444;">*</span></label>
+        <input type="text" class="form-input" name="job_title" required placeholder="cth. Senior Software Engineer">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Perusahaan <span style="color:#ef4444;">*</span></label>
+        <input type="text" class="form-input" name="company" value="{{ company_name }}" readonly>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Keahlian yang Dibutuhkan</label>
+        <input type="text" class="form-input" name="skills" placeholder="cth. Python, SQL, Machine Learning, Docker">
+        <div class="form-help">Pisahkan keahlian dengan koma</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Level Pekerjaan</label>
+          <select class="form-select" name="job_level">
+            <option value="">Pilih level</option>
+            {% for l in levels %}
+              <option value="{{ l }}">{{ l }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Tipe Pekerjaan</label>
+          <select class="form-select" name="job_type">
+            <option value="">Pilih tipe</option>
+            {% for t in types %}
+              <option value="{{ t }}">{{ t }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Lokasi</label>
+          <input type="text" class="form-input" name="location" list="locationList" placeholder="cth. San Francisco, CA">
+          <datalist id="locationList">
+            {% for l in locations %}
+              <option value="{{ l }}">
+            {% endfor %}
+          </datalist>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block btn-lg" id="submitBtn" style="background:linear-gradient(135deg,#14B8A6,#0D9488);border:none;box-shadow:0 2px 8px rgba(20,184,166,0.25);">
+        <i class="bi bi-check2-circle mr-2"></i> Buat Lowongan
+      </button>
+    </form>
+
+    <div id="resultMessage" style="margin-top:16px;"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('createVacancyForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const form = e.target;
+  const btn = document.getElementById('submitBtn');
+  const msg = document.getElementById('resultMessage');
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="bi bi-hourglass-split mr-2"></i> Membuat...';
+
+  const data = {
+    job_title: form.job_title.value.trim(),
+    company: form.company.value.trim(),
+    skills: form.skills.value.trim(),
+    job_level: form.job_level.value,
+    job_type: form.job_type.value,
+    location: form.location.value.trim(),
+  };
+
+  try {
+    const res = await fetch('/employer/api/jobs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const result = await res.json();
+
+    if (result.success) {
+      msg.innerHTML = '<div class="alert alert-success">Lowongan berhasil dibuat! <a href="/employer/vacancies/' + result.vacancy.id + '">Lihat detail</a></div>';
+      form.reset();
+    } else {
+      msg.innerHTML = '<div class="alert alert-danger">Kesalahan: ' + (result.error || 'Kesalahan tidak diketahui') + '</div>';
+    }
+  } catch (err) {
+    msg.innerHTML = '<div class="alert alert-danger">Kesalahan jaringan: ' + err.message + '</div>';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-check2-circle mr-2"></i> Buat Lowongan';
+  }
+});
+</script>
+{% endblock %}

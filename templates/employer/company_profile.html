@@ -1,0 +1,94 @@
+{% extends "employer/base_employer.html" %}
+{% block title %}Profil Perusahaan{% endblock %}
+{% block page_title %}Profil Perusahaan{% endblock %}
+{% block breadcrumb %}Profil Perusahaan{% endblock %}
+
+{% block content %}
+<div class="card-new" style="max-width:820px;margin:0 auto;">
+  <div class="card-new-body">
+    <div style="display:flex;align-items:center;gap:16px;padding-bottom:20px;border-bottom:1px solid #f1f5f9;margin-bottom:24px;">
+      {% if company.logo_url %}
+        <img src="{{ company.logo_url }}" alt="{{ company.name }}" style="width:56px;height:56px;border-radius:12px;object-fit:cover;flex-shrink:0;">
+      {% else %}
+        <div style="width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,#6366f1,#8b5cf6);display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:700;color:white;flex-shrink:0;">
+          {{ company.name[:1] }}
+        </div>
+      {% endif %}
+      <div>
+        <h2 style="font-size:1.25rem;font-weight:700;color:#0f172a;margin:0;">{{ company.name }}</h2>
+        <p style="color:#64748b;font-size:0.85rem;margin:2px 0 0;">
+          {% if company.industry %}{{ company.industry }}{% endif %}
+          {% if company.size %} &middot; {{ company.size }}{% endif %}
+        </p>
+      </div>
+    </div>
+
+    <form method="POST" action="/employer/company/profile" enctype="multipart/form-data">
+      <div class="form-group">
+        <label class="form-label">Nama Perusahaan <span style="color:#ef4444;">*</span></label>
+        <input type="text" class="form-input" name="name" value="{{ company.name }}" required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Logo Perusahaan</label>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <input type="file" class="form-input" name="logo" accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml" style="flex:1;">
+          {% if company.logo_url %}
+            <img src="{{ company.logo_url }}" alt="logo" style="width:40px;height:40px;border-radius:8px;object-fit:cover;">
+          {% endif %}
+        </div>
+        <small style="color:#94a3b8;font-size:0.7rem;margin-top:4px;display:block;">Format: PNG, JPG, GIF, WebP, SVG. Maks 2MB.</small>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="form-group">
+          <label class="form-label">Industri</label>
+          <select class="form-select" name="industry">
+            <option value="">Pilih industri</option>
+            {% for opt in ['Teknologi / IT', 'Keuangan / Perbankan', 'Kesehatan / Farmasi', 'Pendidikan', 'Manufaktur', 'Ritel / E-commerce', 'Konsultan', 'Media / Hiburan', 'Telekomunikasi', 'Energi / Sumber Daya', 'Transportasi / Logistik', 'Lainnya'] %}
+              <option value="{{ opt }}" {% if company.industry == opt %}selected{% endif %}>{{ opt }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ukuran Perusahaan</label>
+          <select class="form-select" name="size">
+            <option value="">Pilih ukuran</option>
+            {% for opt in ['1-10 karyawan', '11-50 karyawan', '51-200 karyawan', '201-1000 karyawan', '1000+ karyawan'] %}
+              <option value="{{ opt }}" {% if company.size == opt %}selected{% endif %}>{{ opt }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Deskripsi Perusahaan</label>
+        <textarea class="form-textarea" name="description" rows="3">{{ company.description }}</textarea>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="form-group">
+          <label class="form-label">Lokasi</label>
+          <input type="text" class="form-input" name="location" value="{{ company.location }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Website</label>
+          <input type="url" class="form-input" name="website" value="{{ company.website }}">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div class="form-group">
+          <label class="form-label">Nama HR (opsional)</label>
+          <input type="text" class="form-input" name="hr_name" value="{{ company.hr_name }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nomor Telepon (opsional)</label>
+          <input type="text" class="form-input" name="phone" value="{{ company.phone }}">
+        </div>
+      </div>
+      <div style="display:flex;gap:12px;margin-top:8px;">
+        <button type="submit" class="btn btn-primary" style="background:linear-gradient(135deg,#14B8A6,#0D9488);border:none;box-shadow:0 2px 8px rgba(20,184,166,0.25);">
+          <i class="bi bi-check-lg mr-2"></i>Simpan Perubahan
+        </button>
+        <a href="/employer/dashboard" class="btn btn-outline">Batal</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}{{ job.job_title }} - JobMatch{% endblock %}
+{% block page_content %}
+<div class="container py-6">
+  <a href="{{ url_for('jobs') }}" class="btn btn-ghost mb-4"><i class="bi bi-arrow-left me-1"></i> Kembali ke Lowongan</a>
+
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="flex justify-between items-start mb-2">
+        <div>
+          <h3 class="h4 mb-1">{{ job.job_title }}</h3>
+          <p class="text-muted mb-0"><i class="bi bi-building me-1"></i>{{ job.company }}</p>
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-2 mb-3 text-sm text-muted">
+        {% if job.location %}<span><i class="bi bi-geo-alt me-1"></i>{{ job.location }}</span>{% endif %}
+        {% if job.employment %}
+        <span>
+          <i class="bi bi-clock me-1"></i>
+          {% set emp_map = {'full_time':'Full Time', 'part_time':'Part Time', 'contract':'Kontrak', 'internship':'Magang', 'temporary':'Temporary'} %}
+          {{ emp_map.get(job.employment, job.employment) }}
+        </span>
+        {% endif %}
+        {% if job.salary_min or job.salary_max %}
+        <span><i class="bi bi-cash me-1"></i>
+          {% if job.salary_min and job.salary_max %}
+            Rp {{ "{:,.0f}".format(job.salary_min|int) }} - Rp {{ "{:,.0f}".format(job.salary_max|int) }}
+          {% elif job.salary_min %}
+            &ge; Rp {{ "{:,.0f}".format(job.salary_min|int) }}
+          {% elif job.salary_max %}
+            &le; Rp {{ "{:,.0f}".format(job.salary_max|int) }}
+          {% endif %}
+        </span>
+        {% endif %}
+        {% if job.posted_at %}
+        <span><i class="bi bi-calendar me-1"></i>{{ job.posted_at[:10] }}</span>
+        {% endif %}
+      </div>
+      {% if job.categories %}
+      <div class="mb-3">
+        {% for c in job.categories %}
+        <span class="badge badge-neutral me-1" style="font-size:0.7rem">{{ c }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if match_score is defined and user_skills %}
+  <div class="card mb-4">
+    <div class="card-body text-center">
+      <h6 class="font-semibold mb-3"><i class="bi bi-graph-up-arrow me-1"></i>Kecocokan dengan Profilmu</h6>
+      <div class="flex items-center justify-center gap-4">
+        <div style="width:80px;height:80px;position:relative">
+          <svg viewBox="0 0 36 36" style="width:80px;height:80px">
+            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#E5E7EB" stroke-width="3" />
+            <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="{% if match_score >= 70 %}#10B981{% elif match_score >= 40 %}#F59E0B{% else %}#EF4444{% endif %}" stroke-width="3" stroke-dasharray="{{ match_score }}, 100" />
+          </svg>
+          <span class="font-bold" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.2rem">{{ match_score }}%</span>
+        </div>
+        <div class="text-start text-sm text-muted">
+          {% if match_score >= 70 %}
+            <span class="text-success font-semibold">Sangat cocok!</span> — skill-mu sangat sesuai.
+          {% elif match_score >= 40 %}
+            <span class="text-warning font-semibold">Cukup cocok</span> — beberapa skill sesuai.
+          {% else %}
+            <span class="text-danger font-semibold">Kurang cocok</span> — banyak skill yang belum sesuai.
+          {% endif %}
+          <br><a href="/profile" class="text-primary">Lengkapi profil</a> untuk kecocokan lebih akurat.
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if job.description %}
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="font-bold mb-3"><i class="bi bi-file-text me-2"></i>Deskripsi Pekerjaan</h5>
+      <p class="text-muted" style="white-space:pre-line;font-size:0.9rem">{{ job.description }}</p>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if job.categorized_skills %}
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="font-bold mb-3"><i class="bi bi-tools me-2"></i>Skill yang Dibutuhkan</h5>
+      {% for cat, skills in job.categorized_skills.items() %}
+      <div class="mb-3">
+        <small class="text-muted font-semibold d-block mb-1" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.5px">{{ cat }}</small>
+        <div>
+        {% for s in skills %}
+          <span class="skill-badge me-1 mb-1"
+                {% if user_skills and s.lower() in user_skills %}style="background:var(--success-light);color:var(--success-dark);border-color:var(--success)"{% endif %}>
+            {{ s }}
+            {% if user_skills and s.lower() in user_skills %}<i class="bi bi-check-circle-fill ms-1" style="font-size:0.7rem"></i>{% endif %}
+          </span>
+        {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="card mb-4">
+    <div class="card-body text-center">
+      <p class="text-muted text-sm mb-3">
+        <i class="bi bi-box-arrow-up-right me-1"></i>Lowongan ini berasal dari JobStreet
+      </p>
+      {% if job.job_url %}
+      <a href="{{ job.job_url }}" target="_blank" class="btn btn-primary">
+        <i class="bi bi-box-arrow-up-right me-1"></i>Lihat di JobStreet
+      </a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

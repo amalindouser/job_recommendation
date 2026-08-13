@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="app-layout">
+  <aside class="app-sidebar" id="sidebar">
+    <div class="app-sidebar__brand">
+      <a href="/dashboard" class="app-sidebar__logo">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        JobMatch
+      </a>
+    </div>
+    <nav class="app-sidebar__nav">
+      <a href="/dashboard" class="app-sidebar__link {% if request.path == '/dashboard' %}app-sidebar__link--active{% endif %}">
+        <i class="bi bi-grid-1x2-fill"></i><span>Dasbor</span>
+      </a>
+      <a href="/jobs" class="app-sidebar__link {% if request.path == '/jobs' %}app-sidebar__link--active{% endif %}">
+        <i class="bi bi-briefcase-fill"></i><span>Lowongan</span>
+      </a>
+      <a href="/saved_jobs" class="app-sidebar__link {% if request.path == '/saved_jobs' %}app-sidebar__link--active{% endif %}">
+        <i class="bi bi-bookmark-fill"></i><span>Tersimpan</span>
+      </a>
+      <a href="/my-applications" class="app-sidebar__link {% if request.path == '/my-applications' %}app-sidebar__link--active{% endif %}">
+        <i class="bi bi-send-fill"></i><span>Lamaran</span>
+      </a>
+      <a href="/profile" class="app-sidebar__link {% if request.path == '/profile' %}app-sidebar__link--active{% endif %}">
+        <i class="bi bi-person-fill"></i><span>Profil</span>
+      </a>
+    </nav>
+    <div class="app-sidebar__bottom">
+      <div class="notif-bell" id="notifBell" onclick="toggleNotifDropdown(event)" style="position:relative;cursor:pointer;margin-right:12px;">
+        <i class="bi bi-bell" style="font-size:1.15rem;color:rgba(255,255,255,0.45);"></i>
+        <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
+        <div class="notif-dropdown" id="notifDropdown">
+          <div class="notif-dropdown__header">
+            <span>Notifikasi</span>
+            <small id="markAllRead" style="cursor:pointer;color:var(--primary);">Tandai dibaca</small>
+          </div>
+          <div class="notif-dropdown__body" id="notifList">
+            <div class="notif-empty">Memuat...</div>
+          </div>
+          <div class="notif-dropdown__footer">
+            <small style="color:#94a3b8;">Klik notif untuk menandai dibaca</small>
+          </div>
+        </div>
+      </div>
+      <div class="app-sidebar__user">
+        <div class="app-sidebar__avatar">{{ current_user.username[:1].upper() }}</div>
+        <div class="app-sidebar__user-info">
+          <div class="app-sidebar__user-name">{{ current_user.username }}</div>
+          <div class="app-sidebar__user-role">Pencari Kerja</div>
+        </div>
+      </div>
+      <a href="/logout" class="app-sidebar__logout" title="Keluar">
+        <i class="bi bi-box-arrow-right"></i>
+      </a>
+    </div>
+  </aside>
+  <div class="app-main">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div style="padding:20px 28px 0">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category if category else 'info' }} fade-in mb-3">
+              <i class="bi bi-{% if category == 'success' %}check-circle{% elif category == 'danger' %}exclamation-circle{% elif category == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+              <span>{{ message }}</span>
+              <button class="btn-close" onclick="this.parentElement.remove()">&times;</button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    {% block page_content %}{% endblock %}
+  </div>
+  <button class="app-sidebar-toggle" id="sidebarToggle" onclick="toggleSidebar()">
+    <i class="bi bi-list"></i>
+  </button>
+</div>
+<style>
+.app-layout { display:flex; min-height:100vh; }
+.app-sidebar { width:260px; min-width:260px; background:linear-gradient(180deg,#0f172a 0%,#1e293b 100%); display:flex; flex-direction:column; position:fixed; inset:0 0 0 0; z-index:100; transition:transform 0.3s cubic-bezier(0.4,0,0.2,1); }
+.app-sidebar__brand { padding:20px 24px; border-bottom:1px solid rgba(255,255,255,0.06); }
+.app-sidebar__logo { display:flex; align-items:center; gap:10px; color:#fff; text-decoration:none; font-size:1.15rem; font-weight:700; letter-spacing:-0.3px; }
+.app-sidebar__logo svg { color:#14B8A6; }
+.app-sidebar__nav { flex:1; padding:16px 12px; display:flex; flex-direction:column; gap:2px; }
+.app-sidebar__link { display:flex; align-items:center; gap:12px; padding:10px 14px; border-radius:10px; color:rgba(255,255,255,0.55); text-decoration:none; font-size:0.85rem; font-weight:500; transition:all 0.15s; }
+.app-sidebar__link i { font-size:1.05rem; width:20px; text-align:center; }
+.app-sidebar__link:hover { color:#fff; background:rgba(255,255,255,0.06); }
+.app-sidebar__link--active { color:#fff; background:rgba(20,184,166,0.15); }
+.app-sidebar__link--active i { color:#14B8A6; }
+.app-sidebar__bottom { padding:16px 12px; border-top:1px solid rgba(255,255,255,0.06); display:flex; align-items:center; gap:6px; }
+.app-sidebar__user { display:flex; align-items:center; gap:10px; flex:1; min-width:0; }
+.app-sidebar__avatar { width:34px; height:34px; border-radius:9px; background:linear-gradient(135deg,#14B8A6,#0D9488); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:0.8rem; flex-shrink:0; }
+.app-sidebar__user-info { flex:1; min-width:0; }
+.app-sidebar__user-name { font-size:0.78rem; font-weight:600; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.app-sidebar__user-role { font-size:0.62rem; color:rgba(255,255,255,0.35); }
+.app-sidebar__logout { width:34px; height:34px; border-radius:9px; display:flex; align-items:center; justify-content:center; color:rgba(255,255,255,0.35); text-decoration:none; transition:all 0.15s; flex-shrink:0; }
+.app-sidebar__logout:hover { color:#ef4444; background:rgba(239,68,68,0.1); }
+.app-main { flex:1; margin-left:260px; background:#f8fafc; min-height:100vh; }
+.app-sidebar-toggle { display:none; position:fixed; top:14px; left:14px; z-index:200; width:40px; height:40px; border-radius:10px; background:#fff; border:1px solid #e2e8f0; box-shadow:0 2px 8px rgba(0,0,0,0.08); color:#0f172a; font-size:1.2rem; cursor:pointer; align-items:center; justify-content:center; }
+@media (max-width:768px) {
+  .app-sidebar { transform:translateX(-100%); }
+  .app-sidebar--open { transform:translateX(0); }
+  .app-main { margin-left:0; }
+  .app-sidebar-toggle { display:flex; }
+}
+</style>
+<script>
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('app-sidebar--open');
+}
+</script>
+{% endblock %}
+{% block footer %}{% endblock %}

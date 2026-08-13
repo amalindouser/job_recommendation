@@ -7,6 +7,7 @@ requests>=2.31.0
 gunicorn>=21.2.0
 Werkzeug>=2.3.0
 sentence-transformers>=2.2.0
+# cross-encoder is bundled with sentence-transformers; no extra install needed
 scikit-learn>=1.3.0
 numpy>=1.24.0
 psycopg2-binary>=2.9.0

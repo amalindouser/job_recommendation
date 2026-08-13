@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Employer{% endblock %} — JobMatch</title>
+  <link rel="stylesheet" href="/static/css/design-system.css">
+  <link rel="stylesheet" href="/static/css/employer.css">
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  {% block head %}{% endblock %}
+</head>
+<body class="employer-body">
+
+  <!-- Sidebar Overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+  <!-- Sidebar -->
+  <aside class="employer-sidebar" id="employerSidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-icon"><i class="bi bi-briefcase-fill"></i></div>
+      <div>
+        <div class="sidebar-brand-text">JobMatch</div>
+        <div class="sidebar-brand-sub">Employer Portal</div>
+      </div>
+    </div>
+
+    {% if company %}
+    <div class="sidebar-company">
+      {% if company.logo_url %}
+        <img src="{{ company.logo_url }}" alt="" style="width:36px;height:36px;border-radius:8px;object-fit:cover;flex-shrink:0;">
+      {% else %}
+        <div class="sidebar-company-avatar">{{ company.name[:1] }}</div>
+      {% endif %}
+      <div>
+        <div class="sidebar-company-name">{{ company.name }}</div>
+        {% if company.industry %}
+        <div class="sidebar-company-industry">{{ company.industry }}</div>
+        {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-title">Utama</div>
+      <a class="sidebar-link {% if active_page == 'dashboard' %}active{% endif %}" href="/employer/dashboard">
+        <i class="bi bi-speedometer2"></i> Dashboard
+      </a>
+      <a class="sidebar-link {% if active_page == 'vacancies' %}active{% endif %}" href="/employer/vacancies">
+        <i class="bi bi-list-task"></i> Lowongan
+      </a>
+      <a class="sidebar-link {% if active_page == 'create_smart' %}active{% endif %}" href="/employer/vacancies/create-smart">
+        <i class="bi bi-wand"></i> Buat Cerdas
+      </a>
+      <a class="sidebar-link {% if active_page == 'create' %}active{% endif %}" href="/employer/vacancies/create">
+        <i class="bi bi-plus-circle"></i> Buat Cepat
+      </a>
+
+      <div class="sidebar-section-title">Perusahaan</div>
+      <a class="sidebar-link {% if active_page == 'company_setup' or active_page == 'company_profile' %}active{% endif %}" href="/employer/company/profile">
+        <i class="bi bi-building"></i> Profil Perusahaan
+      </a>
+
+      <div class="sidebar-section-title">Lainnya</div>
+      <a class="sidebar-link" href="/">
+        <i class="bi bi-globe"></i> Ke Beranda
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <a class="sidebar-link" href="/logout" style="color:#ef4444;">
+        <i class="bi bi-box-arrow-right"></i> Keluar
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <div class="employer-main">
+    <!-- Top Bar -->
+    <header class="employer-topbar">
+      <div class="employer-topbar-left">
+        <button class="sidebar-toggle" onclick="toggleSidebar()">
+          <i class="bi bi-list"></i>
+        </button>
+        <div>
+          <div class="employer-topbar-title">{% block page_title %}Dashboard{% endblock %}</div>
+          <div class="employer-topbar-breadcrumb">
+            <a href="/employer/dashboard">Employer</a>
+            <span class="separator">/</span>
+            <span>{% block breadcrumb %}Dashboard{% endblock %}</span>
+          </div>
+        </div>
+      </div>
+      <div class="employer-topbar-right">
+        <div class="notif-bell" id="notifBell" onclick="toggleNotifDropdown(event)" style="position:relative;cursor:pointer;margin-right:14px;">
+          <i class="bi bi-bell" style="font-size:1.2rem;color:#475569;"></i>
+          <span class="notif-badge" id="notifBadge" style="display:none;">0</span>
+          <div class="notif-dropdown" id="notifDropdown">
+            <div class="notif-dropdown__header">
+              <span>Notifikasi</span>
+              <small id="markAllRead" style="cursor:pointer;color:var(--primary);">Tandai dibaca</small>
+            </div>
+            <div class="notif-dropdown__body" id="notifList">
+              <div class="notif-empty">Memuat...</div>
+            </div>
+            <div class="notif-dropdown__footer">
+              <small style="color:#94a3b8;">Klik notif untuk menandai dibaca</small>
+            </div>
+          </div>
+        </div>
+        <div class="dropdown" id="topbarUserDropdown">
+          <a class="topbar-user" href="#" onclick="toggleTopbarDropdown(event)">
+            <div class="topbar-user-avatar">{{ current_user.username[:1].upper() }}</div>
+            <span class="topbar-user-name">{{ current_user.username }}</span>
+            <i class="bi bi-chevron-down" style="font-size:0.7rem;color:#94a3b8;"></i>
+          </a>
+          <div class="dropdown__menu" id="topbarUserMenu">
+            <a class="dropdown__item" href="/employer/dashboard"><i class="bi bi-speedometer2"></i> Dashboard</a>
+            <a class="dropdown__item" href="/employer/company/profile"><i class="bi bi-building"></i> Profil Perusahaan</a>
+            <a class="dropdown__item" href="/employer/vacancies"><i class="bi bi-list-task"></i> Lowongan</a>
+            <div class="dropdown__divider"></div>
+            <a class="dropdown__item" href="/logout" style="color:#ef4444;"><i class="bi bi-box-arrow-right"></i> Keluar</a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div style="padding: 16px 32px 0;">
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category if category else 'info' }} fade-in" style="margin-bottom:12px;">
+              <i class="bi bi-{% if category == 'success' %}check-circle{% elif category == 'danger' %}exclamation-circle{% elif category == 'warning' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+              <span>{{ message }}</span>
+              <button class="btn-close" onclick="this.parentElement.remove()">&times;</button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <!-- Content -->
+    <main class="employer-content">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <script>
+    function toggleSidebar() {
+      const sidebar = document.getElementById('employerSidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      sidebar.classList.toggle('open');
+      if (overlay) overlay.classList.toggle('open');
+    }
+
+    function toggleTopbarDropdown(e) {
+      e.preventDefault();
+      const menu = document.getElementById('topbarUserMenu');
+      menu.classList.toggle('dropdown__menu--open');
+    }
+
+    document.addEventListener('click', function(e) {
+      const dd = document.getElementById('topbarUserDropdown');
+      if (dd && !dd.contains(e.target)) {
+        document.getElementById('topbarUserMenu')?.classList.remove('dropdown__menu--open');
+      }
+    });
+
+    document.querySelectorAll('.btn-close').forEach(b => b.addEventListener('click', function() {
+      this.parentElement.remove();
+    }));
+
+    // Notification system
+    let notifPollTimer = null;
+    const NOTIF_API = '/employer/api/notifications';
+
+    function toggleNotifDropdown(e) {
+      e.stopPropagation();
+      const dd = document.getElementById('notifDropdown');
+      dd.classList.toggle('notif-dropdown--open');
+      if (dd.classList.contains('notif-dropdown--open')) {
+        loadNotifications();
+        if (!notifPollTimer) notifPollTimer = setInterval(loadNotificationCount, 15000);
+      }
+    }
+    document.addEventListener('click', function(e) {
+      const bell = document.getElementById('notifBell');
+      if (bell && !bell.contains(e.target)) {
+        document.getElementById('notifDropdown')?.classList.remove('notif-dropdown--open');
+      }
+    });
+    async function loadNotifications() {
+      const list = document.getElementById('notifList');
+      try {
+        const res = await fetch(NOTIF_API);
+        const data = await res.json();
+        list.innerHTML = data.notifications.length === 0
+          ? '<div class="notif-empty">Belum ada notifikasi</div>'
+          : data.notifications.map(n => '<div class="notif-item' + (n.is_read ? '' : ' notif-item--unread') + '" data-id="' + n.id + '" onclick="clickNotif(this)">'
+            + '<div class="notif-item__icon"><i class="bi bi-' + (n.type === 'status_update' ? 'arrow-repeat' : 'person-plus') + '"></i></div>'
+            + '<div class="notif-item__body"><div class="notif-item__msg">' + n.message + '</div>'
+            + '<div class="notif-item__time">' + (n.created_at ? n.created_at.slice(11, 16) : '') + '</div></div></div>'
+          ).join('');
+        updateBadge(data.unread);
+      } catch(e) { list.innerHTML = '<div class="notif-empty">Gagal memuat</div>'; }
+    }
+    async function loadNotificationCount() {
+      try {
+        const res = await fetch(NOTIF_API + '?limit=1');
+        const data = await res.json();
+        updateBadge(data.unread);
+      } catch(e) {}
+    }
+    function updateBadge(count) {
+      const badge = document.getElementById('notifBadge');
+      if (count > 0) { badge.style.display = 'flex'; badge.textContent = count > 99 ? '99+' : count; }
+      else { badge.style.display = 'none'; }
+    }
+    async function clickNotif(el) {
+      const id = el.dataset.id;
+      el.classList.remove('notif-item--unread');
+      await fetch(NOTIF_API + '/read/' + id, { method: 'POST' });
+      loadNotificationCount();
+    }
+    document.getElementById('markAllRead')?.addEventListener('click', async function() {
+      await fetch(NOTIF_API + '/read-all', { method: 'POST' });
+      document.querySelectorAll('.notif-item--unread').forEach(el => el.classList.remove('notif-item--unread'));
+      updateBadge(0);
+    });
+    function handleSidebarResize() {
+      const sidebar = document.getElementById('employerSidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      if (!sidebar) return;
+      // Tutup sidebar saat resize ke ukuran lebih besar
+      if (window.innerWidth > 768) {
+        sidebar.classList.remove('open');
+        if (overlay) overlay.classList.remove('open');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+      loadNotificationCount();
+      notifPollTimer = setInterval(loadNotificationCount, 15000);
+      handleSidebarResize();
+    });
+
+    window.addEventListener('resize', handleSidebarResize);
+  </script>
+
+  <style>
+  .notif-badge { position:absolute; top:-6px; right:-8px; min-width:18px; height:18px; border-radius:9px; background:#ef4444; color:#fff; font-size:0.6rem; font-weight:700; align-items:center; justify-content:center; padding:0 4px; box-shadow:0 2px 4px rgba(239,68,68,0.3); }
+  .notif-dropdown { position:absolute; top:100%; right:-10px; width:360px; max-height:420px; background:#fff; border-radius:12px; box-shadow:0 12px 40px rgba(0,0,0,0.15); border:1px solid #eef2f6; display:none; flex-direction:column; z-index:1000; margin-top:8px; }
+  .notif-dropdown--open { display:flex; }
+  .notif-dropdown__header { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid #f1f5f9; font-weight:600; font-size:0.85rem; color:#0f172a; }
+  .notif-dropdown__body { flex:1; overflow-y:auto; max-height:320px; }
+  .notif-dropdown__footer { padding:8px 18px; border-top:1px solid #f1f5f9; text-align:center; }
+  .notif-empty { text-align:center; padding:32px 16px; color:#94a3b8; font-size:0.82rem; }
+  .notif-item { display:flex; gap:10px; padding:12px 18px; cursor:pointer; transition:background 0.12s; border-bottom:1px solid #f8fafc; }
+  .notif-item:hover { background:#f8fafc; }
+  .notif-item--unread { background:rgba(20,184,166,0.04); border-left:3px solid #14B8A6; }
+  .notif-item__icon { width:32px; height:32px; border-radius:8px; background:rgba(20,184,166,0.1); display:flex; align-items:center; justify-content:center; color:#14B8A6; flex-shrink:0; font-size:0.8rem; }
+  .notif-item__body { flex:1; min-width:0; }
+  .notif-item__msg { font-size:0.8rem; color:#1e293b; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .notif-item__time { font-size:0.62rem; color:#94a3b8; margin-top:3px; }
+  </style>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>
