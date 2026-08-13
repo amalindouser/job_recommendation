@@ -1,7 +1,16 @@
 # Deploy JobMatch ke VPS — Langkah-langkah
 
+Domain: **jobmatch.amalindo.my.id** (subdomain baru).
+`amalindo.my.id` TIDAK disentuh — tetap milik Ticket Intelligence.
+
 Persiapan server (sekali): RAM >= 8 GB, disk free >= 10 GB.
 Install di VPS: `sudo apt update && sudo apt install -y python3 python3-venv python3-pip postgresql-client nginx certbot rsync`
+
+**Sebelum mulai** — tambahkan DNS A record:
+```
+jobmatch  A   <IP VPS>
+```
+(biasanya di panel domain / pterodactyl. Verifikasi: `dig jobmatch.amalindo.my.id`)
 
 ## 1. Backup & pindahkan database (jalankan di laptop)
 
@@ -23,8 +32,8 @@ pakai **host direct** (non-pooler) untuk restore.
 ## 2. Kirim kode + data ke VPS (jalankan di laptop)
 
 ```bash
-./deploy/rsync.sh user@vps-ip
-# kalau folder beda: ./deploy/rsync.sh user@vps-ip /srv/jobmatch
+./deploy/rsync.sh root@amalindo.my.id
+# kalau folder beda: ./deploy/rsync.sh root@amalindo.my.id /srv/jobmatch
 ```
 
 File yang TIDAK ikut (sengaja): `.env`, `venv`, `database/*.json`,
@@ -63,25 +72,25 @@ journalctl -u jobmatch -f
 Boot pertama lambat (model embeddings ~2,5 GB di-download + cache),
 tunggu hingga log menampilkan "Job embeddings ready!".
 
-## 4. Nginx + HTTPS
+## 4. Nginx + HTTPS (config baru, tidak menyentuh config amalindo lama)
 
 ```bash
 sudo cp deploy/nginx.conf /etc/nginx/sites-available/jobmatch
-sudo sed -i 's/ganti.dengan.domain.com/domain-anda.com/' /etc/nginx/sites-available/jobmatch
 sudo ln -s /etc/nginx/sites-available/jobmatch /etc/nginx/sites-enabled/
 sudo nginx -t && sudo systemctl reload nginx
 
-# HTTPS (Let's Encrypt)
-sudo certbot --nginx -d domain-anda.com
+# HTTPS (Let's Encrypt) untuk subdomain jobmatch
+sudo certbot --nginx -d jobmatch.amalindo.my.id
 ```
 
 ## 5. Verifikasi
 
-- Buka https://domain-anda.com → halaman utama
+- Buka http://jobmatch.amalindo.my.id → halaman utama
 - Login user lama → profil, lamaran, tersimpan ikut (data dari DB yang di-restore)
 - `/jobs` → pencarian jalan (pakai `all_jobs_clean.db` yang sudah di-rsync)
+- Pastikan `amalindo.my.id` (Ticket Intelligence) masih normal.
 
 ## Rollback / update
 
-- Update kode: `./deploy/rsync.sh user@vps-ip` lalu `sudo systemctl restart jobmatch`
+- Update kode: `./deploy/rsync.sh root@amalindo.my.id` lalu `sudo systemctl restart jobmatch`
 - Backup rutin: `./deploy/dump_db.sh`
