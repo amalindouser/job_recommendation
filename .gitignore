@@ -47,3 +47,42 @@ logs/
 # OS
 .DS_Store
 Thumbs.db
+
+# ============================================================================
+# Evaluation & Testing scripts (JANGAN di-commit ke production)
+# ============================================================================
+eval_job2job.py
+src/evaluation_hybrid.py
+colab_evaluation_lightweight.py
+simulate_saves.py
+stats_indonesia.py
+
+# Evaluation outputs & results
+OUTPUT_*.txt
+output_eval_*.txt
+output_stats_indonesia.txt
+ringkasan_indonesia.json
+evaluation_results.json
+hasil_job2job_per_acuan.csv
+hasil_job2job_per_acuan_lintasperusahaan.csv
+
+# Cache files (embedding, model, dll)
+*.npy
+embeddings_cache.pkl
+
+# Evaluation images
+gambar*.png
+
+# Documentation for dosen (jangan di-commit ke production)
+docs/
+kirim_dosen/
+
+# Template dokumen pribadi
+*.docx
+
+# Output zip
+output.zip
+
+# Catatan pribadi (bukan source code produksi)
+FINAL_SUMMARY.txt
+QUICK_START.md

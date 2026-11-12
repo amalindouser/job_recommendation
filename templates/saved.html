@@ -1,102 +1,113 @@
 {% extends "base_app.html" %}
 {% block title %}Pekerjaan Tersimpan - JobMatch{% endblock %}
 {% block page_content %}
+
 <div class="page-container">
   <h1 class="page-header__title mb-5"><i class="bi bi-bookmark-fill me-2" style="color:var(--primary)"></i>Pekerjaan Tersimpan</h1>
 
-{% if saved %}
-<div class="grid grid-cols-3 gap-4">
-{% for job in saved %}
-  <div class="card card-hover flex flex-col" style="position:relative;overflow:hidden">
-    <div style="position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--primary),var(--info))"></div>
-    <div class="card-body flex flex-col">
-      <div>
-        <h5 class="h5 font-bold mb-3" style="line-height:1.3">{{ job.job_title }}</h5>
-        {% if job.company %}
-        <p class="text-sm text-muted mb-2 flex items-center gap-2">
-          {% if job.logo_url %}
-            <img src="{{ job.logo_url }}" alt="{{ job.company }}" style="width:20px;height:20px;border-radius:4px;object-fit:cover;">
-          {% else %}
-            <i class="bi bi-building" style="color:var(--primary)"></i>
-          {% endif %}
-          <span>{{ job.company }}</span>
-        </p>
-        {% endif %}
-        {% if job.location %}
-        <p class="text-sm text-muted mb-2 flex items-center gap-2">
-          <i class="bi bi-geo-alt" style="color:var(--primary)"></i><span>{{ job.location }}</span>
-        </p>
-        {% endif %}
-        {% if job.date %}
-        <p class="text-sm text-muted mb-2 flex items-center gap-2">
-          <i class="bi bi-calendar-event" style="color:var(--primary)"></i><span>{{ job.date }}</span>
-        </p>
-        {% endif %}
+  {% set company_colors = ['#14B8A6','#E74C3C','#2ECC71','#F39C12','#9B59B6','#1ABC9C','#E67E22','#0D9488','#E91E63','#00BCD4'] %}
 
-        {% if job.categorized_skills is defined and job.categorized_skills %}
-        <div class="mb-4 pb-4" style="border-bottom:1px solid var(--border)">
+  {% if saved %}
+  <div class="job-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    {% for job in saved %}
+    {% set color = company_colors[(loop.index0) % company_colors|length] %}
+    <div class="job-card">
+      <div class="job-card__top">
+        {% if job.logo_url %}
+        <div class="job-card__logo" style="background:none;overflow:hidden;">
+          <img src="{{ job.logo_url }}" alt="{{ job.company }}" style="width:100%;height:100%;object-fit:cover;border-radius:10px;">
+        </div>
+        {% else %}
+        <div class="job-card__logo" style="background:{{ color }};">
+          <span>{{ (job.company or '?')[:1] }}</span>
+        </div>
+        {% endif %}
+        {% if job.match_percent is defined and job.match_percent > 0 %}
+        <span class="job-card__match" style="background:{% if job.match_percent >= 70 %}var(--success-light);color:var(--success-dark){% elif job.match_percent >= 40 %}var(--warning-light);color:var(--warning){% else %}var(--danger-light);color:var(--danger){% endif %}">
+          {{ job.match_percent }}%
+        </span>
+        {% endif %}
+      </div>
+      <div class="job-card__body">
+        <h3 class="job-card__title">{{ job.job_title }}</h3>
+        <p class="job-card__company">{{ job.company }}</p>
+        <div class="job-card__meta">
+          {% if job.location %}
+          <span class="job-card__meta-item"><i class="bi bi-geo-alt"></i>{{ job.location }}</span>
+          {% endif %}
+          {% if job.job_type %}
+          <span class="job-card__meta-item"><i class="bi bi-briefcase"></i>{{ job.job_type }}</span>
+          {% endif %}
+          {% if job.salary_min or job.salary_max %}
+          <span class="job-card__meta-item"><i class="bi bi-cash"></i>
+            {% if job.salary_min and job.salary_max %}
+              Rp {{ "{:,.0f}".format(job.salary_min|int) }} - Rp {{ "{:,.0f}".format(job.salary_max|int) }}
+            {% elif job.salary_min %}
+              &ge; Rp {{ "{:,.0f}".format(job.salary_min|int) }}
+            {% elif job.salary_max %}
+              &le; Rp {{ "{:,.0f}".format(job.salary_max|int) }}
+            {% endif %}
+          </span>
+          {% endif %}
+        </div>
+        {% if job.description %}
+        <p class="job-card__desc">{{ job.description[:200] }}</p>
+        {% endif %}
+        {% if job.categorized_skills %}
+        {% set ns = namespace(shown=0, remaining=0) %}
+        <div class="job-card__skills">
           {% for cat, skills in job.categorized_skills.items() %}
-          <div class="mb-1">
-            <small class="text-muted font-semibold" style="font-size:0.6rem;text-transform:uppercase">{{ cat }}</small>
-            <div>
-            {% for s in skills %}
-              <span class="skill-badge" style="font-size:0.7rem">{{ s }}</span>
-            {% endfor %}
-            </div>
-          </div>
-          {% endfor %}
-        </div>
-        {% elif job.skills %}
-        <div class="flex flex-wrap gap-1 mb-4 pb-4" style="border-bottom:1px solid var(--border)">
-          {% for s in job.skills[:6] %}
-          <span class="skill-badge" style="font-size:0.7rem">{{ s }}</span>
-          {% endfor %}
-          {% if job.skills|length > 6 %}
-          <span class="skill-badge skill-badge--more">+{{ job.skills|length-6 }} lainnya</span>
+          {% for s in skills %}
+          {% if ns.shown < 5 %}
+          <span class="skill-badge">{{ s }}</span>
+          {% set ns.shown = ns.shown + 1 %}
+          {% else %}
+          {% set ns.remaining = ns.remaining + 1 %}
           {% endif %}
-        </div>
-        {% endif %}
-
-        {% if job.match_percent is not none %}
-        <div class="mb-3">
-          <div style="height:10px;border-radius:10px;background:#E5E7EB;overflow:hidden;margin-bottom:0.5rem">
-            <div class="{% if job.match_percent>=80 %}bg-success{% elif job.match_percent>=50 %}bg-warning{% else %}bg-danger{% endif %}" style="height:100%;border-radius:10px;width:{{ job.match_percent }}%"></div>
-          </div>
-          <small class="text-muted">Kecocokan {{ job.match_percent }}%</small>
+          {% endfor %}
+          {% endfor %}
+          {% if ns.remaining > 0 %}
+          <span class="skill-badge skill-badge--more">+{{ ns.remaining }} lainnya</span>
+          {% endif %}
         </div>
         {% endif %}
       </div>
-
-      <div class="mt-auto flex flex-col gap-2">
-        {% if job.link and job.link!='#' %}
-        <a href="{{ job.link }}" target="_blank" class="btn btn-outline btn-sm btn-block">
-          <i class="bi bi-box-arrow-up-right me-2"></i>Lihat Detail
-        </a>
+      <div class="job-card__footer">
+        {% if job.date %}
+        <span class="job-card__date"><i class="bi bi-calendar3"></i>{{ job.date[:10] }}</span>
+        {% else %}
+        <span class="job-card__date"></span>
         {% endif %}
-        <button class="btn btn-ghost btn-sm btn-block remove-saved-btn" data-idx="{{ loop.index0 }}" style="color:var(--danger);border-color:var(--danger)">
-          <i class="bi bi-trash me-2"></i>Hapus
-        </button>
+        <div class="job-card__actions">
+          {% if job.link and job.link != '#' %}
+          <a href="{{ job.link }}" target="_blank" class="job-card__btn">Lihat <i class="bi bi-box-arrow-up-right"></i></a>
+          {% else %}
+          <button class="job-card__btn job-card__btn--outline" disabled style="opacity:0.6">Tidak Ada Tautan</button>
+          {% endif %}
+          <button class="job-card__btn job-card__btn--outline remove-saved-btn" data-idx="{{ loop.index0 }}" title="Hapus dari tersimpan">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
       </div>
     </div>
+    {% endfor %}
   </div>
-{% endfor %}
-</div>
-{% else %}
+  {% else %}
   <div class="empty-state">
     <i class="bi bi-bookmark empty-state__icon"></i>
-    <div class="empty-state__title">Belum ada pekerjaan tersimpan. Mulai cari untuk menyimpan favorit Anda!</div>
-    <a href="{{ url_for('jobs') }}" class="btn btn-primary"><i class="bi bi-search me-1"></i>Cari Pekerjaan</a>
+    <div class="empty-state__title">Belum ada pekerjaan tersimpan.</div>
+    <p class="empty-state__text">Mulai cari lowongan dan simpan favoritmu di sini.</p>
+    <a href="{{ url_for('jobs') }}" class="btn btn-primary mt-4"><i class="bi bi-search me-1"></i>Cari Pekerjaan</a>
   </div>
-{% endif %}
+  {% endif %}
 </div>
-{% endblock %}
 
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', ()=>{
   Array.from(document.getElementsByClassName('remove-saved-btn')).forEach(btn=>{
     btn.addEventListener('click', async ()=>{
-      if(!confirm('Yakin ingin menghapus pekerjaan ini?')) return
+      if(!confirm('Yakin ingin menghapus pekerjaan ini dari tersimpan?')) return
       const idx = btn.dataset.idx
       const res = await fetch('/remove_saved',{
         method:'POST',
@@ -113,4 +124,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
   })
 })
 </script>
+{% endblock %}
+
 {% endblock %}
