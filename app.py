@@ -33,7 +33,7 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-secret-key-change-in-prod')
 DB_URL = os.getenv("DB_URL")
 if DB_URL and DB_URL.strip():
-    conn = psycopg2.connect(DB_URL, sslmode='require')
+    conn = psycopg2.connect(DB_URL, sslmode='disable')
 else:
     conn = None
 
